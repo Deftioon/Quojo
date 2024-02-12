@@ -1,74 +1,66 @@
+from memory.unsafe import Pointer
+
 struct Complex:
     var re: Float64
     var im: Float64
 
-    fn __init__(self, re: Float64, im: Float64) -> None:
+    fn __init__(inout self, re: Float64, im: Float64) -> None:
         self.re = re
         self.im = im
     
-    fn __add__(self, other: Complex) -> Complex:
+    fn __add__(inout self, other: Complex) -> Complex:
         return Complex(self.re + other.re, self.im + other.im)
     
-    fn __sub__(self, other: Complex) -> Complex:
+    fn __sub__(inout self, other: Complex) -> Complex:
         return Complex(self.re - other.re, self.im - other.im)
     
-    fn __mul__(self, other: Complex) -> Complex:
+    fn __mul__(inout self, other: Complex) -> Complex:
         return Complex(self.re * other.re - self.im * other.im, self.re * other.im + self.im * other.re)
     
-    fn __str__(self) -> String:
+    fn __getitem__(borrowed self, i: int) -> Complex raises:
+        if i == 0:
+            return self.re
+        elif i == 1:
+            return self.im
+        else:
+            raise("Index out of range")
+    
+    fn __setitem__(inout self, i: int, value: Complex) -> None raises:
+        if i == 0:
+            self[0] = value.re
+        elif i == 1:
+            self[1] = value.im
+        else:
+            raise("Index out of range")
+    
+    fn __str__(inout self) -> String:
         return String(self.re) + " + " + String(self.im) + "i"
 
-struct Matrix:
-    var data: DTypePointer[type]
-    var rows: Int
-    var cols: Int
-    var shape: (Int,Int)
+struct ComplexArray:
+    var ArrPointer: Pointer[Float64]
+    var len: Int
+    var capacity: Int
 
-    # Initialize zeroeing all values
-    fn __init__(inout self, rows: Int, cols: Int):
-        self.data = DTypePointer[Complex].alloc(rows * cols)
-        memset_zero(self.data, rows * cols)
-        self.rows = rows
-        self.cols = cols
-        self.shape = (rows, cols)
-
-    fn __getitem__(self, y: Int, x: Int) -> Float64:
-        return self.load[1](y, x)
-
-    fn __setitem__(self, y: Int, x: Int, val: Float64):
-        return self.store[1](y, x, val)
-
-    fn load[nelts: Int](self, y: Int, x: Int) -> SIMD[DType.float64, nelts]:
-        return self.data.simd_load[nelts](y * self.cols + x)
-
-    fn store[nelts: Int](self, y: Int, x: Int, val: SIMD[DType.float64, nelts]):
-        return self.data.simd_store[nelts](y * self.cols + x, val)
+    fn __init__(inout self, capacity: Int = 2, default_value: Int) -> None:
+        self.len = capacity * 2 if capacity > 0 else 1
+        self.capacity = self.len * 4
+        self.ArrPointer = Pointer[Float64].alloc(self.capacity)
     
-    fn print(self):
-        print_no_newline("[")
-        for y in range(self.rows):
-            if y != 0:
-                print_no_newline(" ")
-            for x in range(self.cols):
-                print_no_newline(String(self[y, x]))
-                if x != self.cols - 1:
-                    print_no_newline(", ")
-            if y != self.rows - 1:
-                print()
-        print("]")
-    # Parallelize the code by using the builtin parallelize function
-    fn matmul_parallelized(C: Matrix, A: Matrix, B: Matrix) raises -> None:
-        if A.cols != B.rows:
-            raise ("Error: Shape Mismatch: " + String(A.cols) + " does not match" + String(B.rows))
-        else:
-            @parameter
-            fn calc_row(m: Int):
-                for k in range(A.cols):
-                    @parameter
-                    fn dot[nelts : Int](n : Int):
-                        C.store[nelts](m,n, C.load[nelts](m,n) + A[m,k] * B.load[nelts](k,n))
-                    vectorize[nelts, dot](C.cols)
-            parallelize[calc_row](C.rows, C.rows)
-        
-    fn __del__(owned self):
-        self.data.free()
+        for i in range(self.len):
+            self[i] = default_value
+    
+    fn __getitem__(borrowed self, i: int) -> Complex raises:
+        if i > self.len:
+            raise("Index out of range")
+        return Complex(self.ArrPointer.load(i), self.ArrPointer.load(i + 1))
+    
+    fn __setitem__(inout self, loc: Int, item: Complex) -> None raises:
+        if loc > self.capacity:
+            raise("Index out of range")
+        if loc > self.len:
+            let old_len = self.len
+            self.len = loc + 2
+            for i in range(old_len, self.len):
+                self.ArrPointer.store(i, item)
+            return
+        self.ArrPointer.store(loc, item)
