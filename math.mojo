@@ -1,5 +1,3 @@
-from memory.unsafe import Pointer
-
 struct Complex:
     var re: Float64
     var im: Float64
@@ -17,7 +15,7 @@ struct Complex:
     fn __mul__(inout self, other: Complex) -> Complex:
         return Complex(self.re * other.re - self.im * other.im, self.re * other.im + self.im * other.re)
     
-    fn __getitem__(borrowed self, i: int) -> Complex raises:
+    fn __getitem__(borrowed self, i: Int) raises -> Float64 :
         if i == 0:
             return self.re
         elif i == 1:
@@ -25,11 +23,11 @@ struct Complex:
         else:
             raise("Index out of range")
     
-    fn __setitem__(inout self, i: int, value: Complex) -> None raises:
+    fn __setitem__(inout self, i: Int, value: Complex) raises -> None:
         if i == 0:
-            self[0] = value.re
+            self.re = value.re
         elif i == 1:
-            self[1] = value.im
+            self.im = value.im
         else:
             raise("Index out of range")
     
@@ -41,7 +39,7 @@ struct ComplexArray:
     var len: Int
     var capacity: Int
 
-    fn __init__(inout self, capacity: Int = 2, default_value: Int) -> None:
+    fn __init__(inout self, capacity: Int, default_value: Complex) raises -> None:
         self.len = capacity * 2 if capacity > 0 else 1
         self.capacity = self.len * 4
         self.ArrPointer = Pointer[Float64].alloc(self.capacity)
@@ -49,18 +47,20 @@ struct ComplexArray:
         for i in range(self.len):
             self[i] = default_value
     
-    fn __getitem__(borrowed self, i: int) -> Complex raises:
+    fn __getitem__(borrowed self, i: Int) raises -> Complex:
         if i > self.len:
             raise("Index out of range")
         return Complex(self.ArrPointer.load(i), self.ArrPointer.load(i + 1))
     
-    fn __setitem__(inout self, loc: Int, item: Complex) -> None raises:
+    fn __setitem__(inout self, loc: Int, item: Complex) raises -> None :
         if loc > self.capacity:
             raise("Index out of range")
         if loc > self.len:
             let old_len = self.len
             self.len = loc + 2
             for i in range(old_len, self.len):
-                self.ArrPointer.store(i, item)
+                self.ArrPointer.store(i, item.re)
+                self.ArrPointer.store(i+1, item.im)
             return
-        self.ArrPointer.store(loc, item)
+        self.ArrPointer.store(loc, item.re)
+        self.ArrPointer.store(loc + 1, item.im)
