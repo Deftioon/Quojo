@@ -73,11 +73,19 @@ struct ComplexArray:
         for i in range(self.len):
             print(self[i].re, "+", self[i].im, "i")
 
+struct ComplexMatrix:
+    var rows: Int
+    var cols: Int
+    var data: ComplexArray
+
+    fn __init__(inout self, rows: Int, cols: Int) raises -> None:
+        self.rows = rows
+        self.cols = cols
+        self.data = ComplexArray(rows * cols, ComplexNum(0, 0))
+    
+    fn print(inout self) raises -> None:
+        self.data.print()
+
 fn main() raises:
-    var myComp = ComplexNum(1.0, 2.0)
-
-    let zero = ComplexNum(0.0, 0.0)
-    var myArr = ComplexArray(5, zero)
-
-    myArr[0] = myComp
-    myArr.print()
+    var myMatrix = ComplexMatrix(3, 3)
+    myMatrix.print()
