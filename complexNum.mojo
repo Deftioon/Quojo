@@ -42,7 +42,7 @@ struct ComplexArray:
     var capacity: Int
     var length: Float64
 
-    fn __init__(inout self, capacity: Int, default_value: ComplexNum) raises -> None:
+    fn __init__(inout self, capacity: Int, default_value: ComplexNum = ComplexNum(0,0)) raises -> None:
         self.len = capacity * 2 if capacity > 0 else 1
         self.capacity = self.len * 4
         self.ArrPointer = Pointer[Float64].alloc(self.capacity)
@@ -50,6 +50,12 @@ struct ComplexArray:
     
         for i in range(self.len):
             self[i] = default_value
+    
+    fn __copyinit__(inout self, existing: Self):
+        self.len = existing.len
+        self.capacity = existing.capacity
+        self.ArrPointer = Pointer[Float64].alloc(self.capacity)
+        self.length = existing.length
     
     fn __getitem__(borrowed self, i: Int) raises -> ComplexNum:
         if i > self.len:
@@ -70,7 +76,7 @@ struct ComplexArray:
         self.ArrPointer.store(loc + 1, item.im)
     
     fn print(inout self) raises -> None:
-        for i in range(self.len):
+        for i in range(self.length):
             print(self[i].re, "+", self[i].im, "i")
 
 struct ComplexMatrix:
@@ -81,11 +87,28 @@ struct ComplexMatrix:
     fn __init__(inout self, rows: Int, cols: Int) raises -> None:
         self.rows = rows
         self.cols = cols
-        self.data = ComplexArray(rows * cols, ComplexNum(0, 0))
+        self.data = ComplexArray(rows * cols, ComplexNum(1, 2))
+
+    fn __copyinit__(inout self, existing: Self):
+        self.rows = existing.rows
+        self.cols = existing.cols
+        self.data = existing.data
+
+    fn __mul__(inout self, other: ComplexMatrix) raises -> ComplexMatrix:
+        if self.cols != other.rows:
+            raise("Matrix dimensions do not match")
+        var result = ComplexMatrix(self.rows, other.cols)
+        for i in range(self.rows):
+            for j in range(other.cols):
+                for k in range(self.cols):
+                    result.data[i * other.cols + j] = result.data[i * other.cols + j] + self.data[i * self.cols + k] * other.data[k * other.cols + j]
+        return result
     
     fn print(inout self) raises -> None:
         self.data.print()
 
 fn main() raises:
     var myMatrix = ComplexMatrix(3, 3)
-    myMatrix.print()
+    var myMatrix2 = ComplexMatrix(3, 3)
+    var result = myMatrix * myMatrix2
+    result.print()  
