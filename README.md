@@ -9,13 +9,13 @@ var myQubit = Qubit("01")
 ```
 The mapping of String to Basis State is as follows:
 
-$"00"\rightarrow|00\rangle$
+`"00"` $\rightarrow|00\rangle$
 
-$"01"\rightarrow|01\rangle$
+`"00"` $\rightarrow|01\rangle$
 
-$"10"\rightarrow|10\rangle$
+`"00"` $\rightarrow|10\rangle$
 
-$"11"\rightarrow|11\rangle$
+`"00"` $\rightarrow|11\rangle$
 
 And each basis state maps to each of these vectors:
 
