@@ -77,5 +77,5 @@ struct Qudit:
         self.qubit[0, statePhase] = comp.ComplexNum(1, 0)
 
 fn main() raises:
-    var State = Qubit("11")
+    var State = Qubit("1")
     State.print()

@@ -124,6 +124,13 @@ struct ComplexMatrix:
                 result.data[i * self.cols + j] = self.data[i * self.cols + j] + other.data[i * other.cols + j]
         return result
 
+    fn __mul__(borrowed self, other: Float64) raises -> ComplexMatrix:
+        var result = ComplexMatrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result.data[i * self.cols + j] = self.data[i * self.cols + j] * other
+        return result
+
     fn __mul__(borrowed self, other: ComplexNum) raises -> ComplexMatrix:
         var result = ComplexMatrix(self.rows, self.cols)
         for i in range(self.rows):
@@ -131,28 +138,15 @@ struct ComplexMatrix:
                 result.data[i * self.cols + j] = self.data[i * self.cols + j] * other
         return result
     
-    fn __mul__(borrowed self, other: ComplexArray, axis: Int = 0) raises -> ComplexMatrix:
-        if axis == 0:
-            if self.cols != other.len:
-                raise("ComplexMatrix: mul -> Matrix dimensions on 0th axis do not match")
+    fn __mul__(borrowed self, other: ComplexArray) raises -> ComplexMatrix:
+        if self.cols != other.len:
+            raise("ComplexMatrix: mul -> Matrix dimensions on 0th axis do not match")
 
-            var result = ComplexMatrix(self.rows, self.cols)
-            for i in range(self.rows):
-                for j in range(self.cols):
-                    result[i, j] = self[i, j] * other[i]
-            return result
-
-        elif axis == 1:
-            if self.rows != other.len:
-                raise("ComplexMatrix: mul -> Matrix dimensions on 1st axis do not match")
-
-            var result = ComplexMatrix(self.rows, self.cols)
-            for i in range(self.rows):
-                for j in range(self.cols):
-                    result[i, j] = self[i, j] * other[j]
-            return result
-        else:
-            raise("ComplexMatrix: mul -> Axis can only be 0 or 1 in 2D Tensor")
+        var result = ComplexMatrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result[i, j] = self[i, j] * other[i]
+        return result
     
     fn __mul__(borrowed self, other: ComplexMatrix) raises -> ComplexMatrix:
         if self.rows != other.rows and self.cols != other.cols:
