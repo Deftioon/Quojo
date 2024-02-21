@@ -1,4 +1,5 @@
 import complexNum as comp
+import random
 
 struct QuantumGates:
 
@@ -75,6 +76,16 @@ struct Qudit:
         
         self.qubit = comp.ComplexMatrix(1, self.width*2)
         self.qubit[0, statePhase] = comp.ComplexNum(1, 0)
+    
+    fn measure(inout self):
+        randNum = random.random_float64(0.0, 1.0)
+        alpha = self.qubit[0, 0] * self.qubit[0,0]
+        if randNum < alpha:
+            self.qubit = comp.ComplexMatrix(1, 2)
+            self.qubit[0, 0] = comp.ComplexNum(1, 0)
+        else:
+            self.qubit = comp.ComplexMatrix(1, 2)
+            self.qubit[0, 1] = comp.ComplexNum(1, 0)
 
 fn main() raises:
     var State = Qubit("1")
