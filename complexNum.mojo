@@ -8,6 +8,10 @@ struct ComplexNum:
         self.re = re
         self.im = im
     
+    fn __copyinit__(inout self, existing: Self) -> None:
+        self.re = existing.re
+        self.im = existing.im
+    
     fn __add__(inout self, other: ComplexNum) -> ComplexNum:
         return ComplexNum(self.re + other.re, self.im + other.im)
     
@@ -23,7 +27,7 @@ struct ComplexNum:
         elif i == 1:
             return self.im
         else:
-            raise("Index out of range")
+            raise("ComplexNum: getitem -> Index out of range. Can only use indices 0 and 1 to get real and imaginary components respectively")
     
     fn __setitem__(inout self, i: Int, value: ComplexNum) raises -> None:
         if i == 0:
@@ -31,7 +35,7 @@ struct ComplexNum:
         elif i == 1:
             self.im = value.im
         else:
-            raise("Index out of range")
+            raise("ComplexNum: setitem -> Index out of range. Can only set indices 0 and 1 to set real and imaginary components respectively")
     
     fn print(inout self) -> None:
         print(self.re, "+", self.im, "i")
@@ -39,44 +43,30 @@ struct ComplexNum:
 struct ComplexArray:
     var ArrPointer: Pointer[Float64]
     var len: Int
-    var capacity: Int
-    var length: Float64
 
-    fn __init__(inout self, capacity: Int, default_value: ComplexNum = ComplexNum(0,0)) raises -> None:
-        self.len = capacity * 2 if capacity > 0 else 1
-        self.capacity = self.len * 4
-        self.ArrPointer = Pointer[Float64].alloc(self.capacity)
-        self.length = self.len / 2
-    
-        for i in range(self.len):
+    fn __init__(inout self, length: Int, default_value: ComplexNum = ComplexNum(0,0)) raises -> None:
+        self.len = length
+        self.ArrPointer = Pointer[Float64].alloc(length * 2)
+        for i in range(length):
             self[i] = default_value
-    
-    fn __copyinit__(inout self, existing: Self):
+        
+    fn __copyinit__(inout self, existing: Self) -> None:
         self.len = existing.len
-        self.capacity = existing.capacity
-        self.ArrPointer = Pointer[Float64].alloc(self.capacity)
-        self.length = existing.length
+        self.ArrPointer = existing.ArrPointer
     
     fn __getitem__(borrowed self, i: Int) raises -> ComplexNum:
-        if i > self.len:
-            raise("Index out of range")
-        return ComplexNum(self.ArrPointer.load(i), self.ArrPointer.load(i + 1))
+        if i > self.len - 1:
+            raise("ComplexArray: getitem -> Index out of range")
+        return ComplexNum(self.ArrPointer.load(i * 2), self.ArrPointer.load(i * 2 + 1))
     
     fn __setitem__(inout self, loc: Int, item: ComplexNum) raises -> None :
-        if loc > self.capacity:
-            raise("Index out of range")
-        if loc > self.len:
-            let old_len = self.len
-            self.len = loc + 2
-            for i in range(old_len, self.len):
-                self.ArrPointer.store(i, item.re)
-                self.ArrPointer.store(i+1, item.im)
-            return
-        self.ArrPointer.store(loc, item.re)
-        self.ArrPointer.store(loc + 1, item.im)
+        if loc > self.len - 1:
+            raise("ComplexArray: setitem -> Index out of range")
+        self.ArrPointer.store(loc * 2, item.re)
+        self.ArrPointer.store(loc * 2 + 1, item.im)
     
     fn print(inout self) raises -> None:
-        for i in range(self.length):
+        for i in range(self.len):
             print(self[i].re, "+", self[i].im, "i")
 
 struct ComplexMatrix:
@@ -84,31 +74,42 @@ struct ComplexMatrix:
     var cols: Int
     var data: ComplexArray
 
-    fn __init__(inout self, rows: Int, cols: Int) raises -> None:
+    fn __init__(inout self, rows: Int, cols: Int, default_value: ComplexNum = ComplexNum(0,0)) raises -> None:
         self.rows = rows
         self.cols = cols
-        self.data = ComplexArray(rows * cols, ComplexNum(1, 2))
-
-    fn __copyinit__(inout self, existing: Self):
+        self.data = ComplexArray(rows * cols, default_value)
+    
+    fn __copyinit__(inout self, existing: Self) -> None:
         self.rows = existing.rows
         self.cols = existing.cols
         self.data = existing.data
+    
+    fn __getitem__(borrowed self, i: Int, j: Int) raises -> ComplexNum:
+        if i > self.rows - 1 or j > self.cols - 1:
+            raise("ComplexMatrix: getitem -> Index out of range")
+        return self.data[i * self.cols + j]
 
-    fn __mul__(inout self, other: ComplexMatrix) raises -> ComplexMatrix:
-        if self.cols != other.rows:
-            raise("Matrix dimensions do not match")
-        var result = ComplexMatrix(self.rows, other.cols)
+    fn __setitem__(inout self, i: Int, j: Int, value: ComplexNum) raises -> None:
+        if i > self.rows - 1 or j > self.cols - 1:
+            raise("ComplexMatrix: setitem -> Index out of range")
+        self.data[i * self.cols + j] = value
+    
+    fn __add__(inout self, other: ComplexMatrix) raises -> ComplexMatrix:
+        if self.rows != other.rows or self.cols != other.cols:
+            raise("ComplexMatrix: add -> Matrix dimensions do not match")
+        var result = ComplexMatrix(self.rows, self.cols)
         for i in range(self.rows):
-            for j in range(other.cols):
-                for k in range(self.cols):
-                    result.data[i * other.cols + j] = result.data[i * other.cols + j] + self.data[i * self.cols + k] * other.data[k * other.cols + j]
+            for j in range(self.cols):
+                result.data[i * self.cols + j] = self.data[i * self.cols + j] + other.data[i * other.cols + j]
         return result
     
     fn print(inout self) raises -> None:
-        self.data.print()
+        for i in range(self.rows):
+            for j in range(self.cols):
+                self.data[i * self.cols + j].print()
 
 fn main() raises:
-    var myMatrix = ComplexMatrix(3, 3)
-    var myMatrix2 = ComplexMatrix(3, 3)
-    var result = myMatrix * myMatrix2
-    result.print()  
+    var myArr = ComplexArray(5, ComplexNum(1, 2))
+
+    var myMat = ComplexMatrix(2, 2, ComplexNum(1, 2))
+    myMat.print()
