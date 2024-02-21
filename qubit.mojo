@@ -26,6 +26,3 @@ struct TSQubit:
 fn main() raises:
     var State = TSQubit("11")
     State.print()
-
-    State = TSQubit(11)
-    State.print()
