@@ -23,7 +23,7 @@ Measuring a Qubit is an irreversible operation, and therefore after measuring a 
 
 With Qubit $\alpha|0\rangle + \beta|1\rangle$, the probability amplitude of measuring $|0\rangle$ is of probability $|\alpha^2|$, and likewise the probability of measuring $|1\rangle$. is $|\beta^2|$.
 
-You can measure a Qubit with either the `measure` method from the `Qubit` struct. 
+You can measure a Qubit with the `measure` method from the `Qubit` struct. 
 
 ```py
 var myQubit = Qubit(1)
