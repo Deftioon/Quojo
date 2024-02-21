@@ -141,7 +141,7 @@ struct ComplexMatrix:
                 for j in range(self.cols):
                     result[i, j] = self[i, j] * other[i]
             return result
-            
+
         elif axis == 1:
             if self.rows != other.len:
                 raise("ComplexMatrix: mul -> Matrix dimensions on 1st axis do not match")
@@ -152,7 +152,7 @@ struct ComplexMatrix:
                     result[i, j] = self[i, j] * other[j]
             return result
         else:
-            raise("ComplexMatrix: mul -> Axis can only be 0 or 1")
+            raise("ComplexMatrix: mul -> Axis can only be 0 or 1 in 2D Tensor")
     
     fn __mul__(borrowed self, other: ComplexMatrix) raises -> ComplexMatrix:
         if self.rows != other.rows and self.cols != other.cols:
