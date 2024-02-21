@@ -12,14 +12,20 @@ struct ComplexNum:
         self.re = existing.re
         self.im = existing.im
     
-    fn __add__(inout self, other: ComplexNum) -> ComplexNum:
+    fn __add__(borrowed self, other: ComplexNum) -> ComplexNum:
         return ComplexNum(self.re + other.re, self.im + other.im)
     
-    fn __sub__(inout self, other: ComplexNum) -> ComplexNum:
+    fn __sub__(borrowed self, other: ComplexNum) -> ComplexNum:
         return ComplexNum(self.re - other.re, self.im - other.im)
     
-    fn __mul__(inout self, other: ComplexNum) -> ComplexNum:
+    fn __mul__(borrowed self, other: ComplexNum) -> ComplexNum:
         return ComplexNum(self.re * other.re - self.im * other.im, self.re * other.im + self.im * other.re)
+    
+    fn __mul__(borrowed self, other: Float64) -> ComplexNum:
+        return ComplexNum(self.re * other, self.im * other)
+    
+    fn __invert__(borrowed self) -> ComplexNum:
+        return ComplexNum(self.re, -self.im)
     
     fn __getitem__(borrowed self, i: Int) raises -> Float64 :
         if i == 0:
@@ -38,7 +44,22 @@ struct ComplexNum:
             raise("ComplexNum: setitem -> Index out of range. Can only set indices 0 and 1 to set real and imaginary components respectively")
     
     fn print(inout self) -> None:
-        print(self.re, "+", self.im, "i")
+        if self.im >= 0:
+            print(self.re, "+", self.im, "i")
+        else:
+            print(self.re, "-", -1 * self.im, "i")
+    
+    fn conjugate(borrowed self) -> ComplexNum:
+        return ComplexNum(self.re, -self.im)
+    
+    fn magnitude(borrowed self) -> Float64:
+        return (self.re * self.re + self.im * self.im) ** 0.5
+
+    fn c(borrowed self) -> ComplexNum:
+        return ComplexNum(self.re, -self.im)
+    
+    fn m(borrowed self) -> Float64:
+        return (self.re * self.re + self.im * self.im) ** 0.5
 
 struct ComplexArray:
     var ArrPointer: Pointer[Float64]
@@ -94,7 +115,7 @@ struct ComplexMatrix:
             raise("ComplexMatrix: setitem -> Index out of range")
         self.data[i * self.cols + j] = value
     
-    fn __add__(inout self, other: ComplexMatrix) raises -> ComplexMatrix:
+    fn __add__(borrowed self, other: ComplexMatrix) raises -> ComplexMatrix:
         if self.rows != other.rows or self.cols != other.cols:
             raise("ComplexMatrix: add -> Matrix dimensions do not match")
         var result = ComplexMatrix(self.rows, self.cols)
@@ -103,9 +124,37 @@ struct ComplexMatrix:
                 result.data[i * self.cols + j] = self.data[i * self.cols + j] + other.data[i * other.cols + j]
         return result
 
-    fn __mul__(inout self, other: ComplexMatrix) raises -> ComplexMatrix:
+    fn __mul__(borrowed self, other: ComplexNum) raises -> ComplexMatrix:
+        var result = ComplexMatrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result.data[i * self.cols + j] = self.data[i * self.cols + j] * other
+        return result
+    
+    fn __mul__(borrowed self, other: ComplexArray) raises -> ComplexMatrix:
+        if self.cols != other.len:
+            raise("ComplexMatrix: mul -> Matrix dimensions do not match")
+
+        var result = ComplexMatrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result[i, j] = self[i, j] * other[i]
+        return result
+    
+    fn __mul__(borrowed self, other: ComplexMatrix) raises -> ComplexMatrix:
+        if self.rows != other.rows and self.cols != other.cols:
+            raise("ComplexMatrix: mul -> Matrix dimensions do not match")
+
+        var result = ComplexMatrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result[i, j] = self[i, j] * other[i, j]
+        return result
+
+    fn __matmul__(borrowed self, other: ComplexMatrix) raises -> ComplexMatrix:
         if self.cols != other.rows:
             raise("ComplexMatrix: mul -> Matrix dimensions do not match")
+
         var result = ComplexMatrix(self.rows, other.cols)
         for i in range(self.rows):
             for j in range(other.cols):
@@ -113,6 +162,20 @@ struct ComplexMatrix:
                     result.data[i * other.cols + j] = result.data[i * other.cols + j] + self.data[i * self.cols + k] * other.data[k * other.cols + j]
         return result
     
+    fn transpose(borrowed self) raises -> ComplexMatrix:
+        var result = ComplexMatrix(self.cols, self.rows)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result.data[j * self.rows + i] = self.data[i * self.cols + j]
+        return result
+    
+    fn conjugate_transpose(borrowed self) raises -> ComplexMatrix:
+        var result = ComplexMatrix(self.cols, self.rows)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result.data[j * self.rows + i] = ~self.data[i * self.cols + j]
+        return result
+
     fn print(inout self) raises -> None:
         for i in range(self.rows):
             for j in range(self.cols):
@@ -120,10 +183,4 @@ struct ComplexMatrix:
                 self.data[i * self.cols + j].print()
 
 fn main() raises:
-    var myArr = ComplexArray(5, ComplexNum(1, 0))
-
-    var myMat = ComplexMatrix(2, 2, ComplexNum(1, 0))
-    var myMat2 = ComplexMatrix(2, 2, ComplexNum(1, 0))
-    myMat2[0, 1] = ComplexNum(2, 0)
-    var myMat3 = myMat * myMat2
-    myMat3.print()
+    pass
