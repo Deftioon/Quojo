@@ -43,7 +43,7 @@ struct ComplexNum:
         else:
             raise("ComplexNum: setitem -> Index out of range. Can only set indices 0 and 1 to set real and imaginary components respectively")
     
-    fn print(inout self) -> None:
+    fn print(borrowed self) -> None:
         if self.im >= 0:
             print(self.re, "+", self.im, "i")
         else:
@@ -176,7 +176,7 @@ struct ComplexMatrix:
                 result.data[j * self.rows + i] = ~self.data[i * self.cols + j]
         return result
 
-    fn print(inout self) raises -> None:
+    fn print(borrowed self) raises -> None:
         for i in range(self.rows):
             for j in range(self.cols):
                 print_no_newline(i, j, " ")

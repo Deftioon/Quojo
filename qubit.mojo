@@ -1,15 +1,31 @@
 import complexNum as comp
 
-struct Qubit:
-    var bit: comp.ComplexMatrix
+struct TSQubit:
+    var width: Int
+    var qubit: comp.ComplexMatrix
 
-    fn __init__(inout self, state: Int) raises:
-        self.bit = comp.ComplexMatrix(1, 0)
-        self.bit[0, state] = self.bit[0, state] * 0.0
+    fn __init__(inout self, state: StringLiteral) raises:
+        var Stringed = String(state)
+        self.width = len(Stringed)
+        var binint = atol(Stringed)
+        var statePhase = 0
+        var power = 0
+        while binint > 0:
+            statePhase += 2 ** power * (binint % 10)
+            binint = binint // 10
+            power += 1
+        
+        self.qubit = comp.ComplexMatrix(1, self.width*2)
+        self.qubit[0, statePhase] = comp.ComplexNum(1, 0)
     
-    fn print(inout self) raises:
-        self.bit.print()
+    fn print(borrowed self) raises:
+        for i in range(self.width*2):
+            print(self.qubit[0, i].re, self.qubit[0, i].im)
+        
 
 fn main() raises:
-    var myBit = Qubit(0)
-    myBit.print()
+    var State = TSQubit("11")
+    State.print()
+
+    State = TSQubit(11)
+    State.print()
