@@ -149,13 +149,12 @@ struct ComplexMatrix:
         return result
     
     fn __mul__(borrowed self, other: ComplexMatrix) raises -> ComplexMatrix:
-        if self.rows != other.rows and self.cols != other.cols:
-            raise("ComplexMatrix: mul -> Matrix dimensions do not match")
-
-        var result = ComplexMatrix(self.rows, self.cols)
+        var result = ComplexMatrix(self.rows * other.rows, self.cols * other.cols)
         for i in range(self.rows):
             for j in range(self.cols):
-                result[i, j] = self[i, j] * other[i, j]
+                for k in range(other.rows):
+                    for l in range(other.cols):
+                        result[i * other.rows + k, j * other.cols + l] = self[i, j] * other[k, l]
         return result
 
     fn __matmul__(borrowed self, other: ComplexMatrix) raises -> ComplexMatrix:
@@ -191,7 +190,7 @@ struct ComplexMatrix:
                 self.data[i * self.cols + j].print()
 
 fn main() raises:
-    var matrix1 = ComplexMatrix(2,2)
-    var matrix2 = ComplexMatrix(1,2)
-    var matrix3 = matrix2 @ matrix1
+    var matrix1 = ComplexMatrix(1,2)
+    var matrix2 = ComplexMatrix(1,3)
+    var matrix3 = matrix2 * matrix1
     matrix3.print()

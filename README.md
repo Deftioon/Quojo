@@ -2,7 +2,6 @@
 A Quantum Computing Simulation written in Mojo
 
 ## TODO:
-- Add Qudit Functionality
 - Implement CNOT and Toffioli Gates
 - Implement Quantum Wires
 - Implement Quantum Circuits
@@ -125,6 +124,7 @@ r.print()
 # 1.0 0.0
 # 0.0 0.0
 ```
+`CX()` is also a valid function, running the `CNOT` method.
 - SWAP - Only Operable on Qudits of width 2
 ```py
 var r = Gates.SWAP(myQudit)
@@ -146,7 +146,9 @@ myQudit[2] = k
 var r = Gates.CCNOT(myQudit)
 r.print()
 ```
-CCNOT does not currently work.
+`CCX()` is also a valid function, running the `CCNOT` method.
+Current CCNOT implementation is cheesy and flimsy, expect errors to occur.
+
 ### Quantum Wires
 Yet to be implemented.
 

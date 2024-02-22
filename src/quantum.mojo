@@ -112,6 +112,9 @@ struct QuantumGates:
         if other.width != 2:
             raise "Invalid Qudit Size"
         return Qudit(other.qudit @ self.mCNOT)
+    
+    fn CX(borrowed self, other: Qudit) raises -> Qudit:
+        return self.CNOT(other)
 
     fn CU(borrowed self, other: Qudit, gate: comp.ComplexMatrix) raises -> Qudit:
         var mCU = comp.ComplexMatrix(4, 4)
@@ -139,7 +142,20 @@ struct QuantumGates:
     # Three Qubit Gates
 
     fn CCNOT(borrowed self, other: Qudit) raises -> Qudit:
-        return Qudit(other.qudit @ self.mCCNOT)
+        var state_vector = (other[0].qubit * other[1].qubit) * other[2].qubit
+        #return Qudit(state_vector @ self.mCCNOT)
+        var result = Qubit()
+        result[1] = state_vector[0,6]
+        result[0] = state_vector[0,7]
+        var output = Qudit(3)
+        output[0] = other[0]
+        output[1] = other[1]
+        output[2] = result
+        return output
+    
+    fn CCX(borrowed self, other: Qudit) raises -> Qudit:
+        return self.CCNOT(other)
+
 
 
 struct Qubit:
@@ -190,10 +206,10 @@ struct Qudit:
 
     fn __init__(inout self, size: Int) raises:
         self.width = size
-        self.qudit = comp.ComplexMatrix(1, size * 2)
+        self.qudit = comp.ComplexMatrix(1, 2 * size)
     
     fn __init__(inout self, state: comp.ComplexMatrix) raises:
-        self.width = state.rows * 2
+        self.width = 2 * state.rows 
         self.qudit = state
     
     fn __copyinit__(inout self, existing: Self):
@@ -215,9 +231,16 @@ struct Qudit:
         self.qudit[0, index * 2 + 1] = value[1]
     
     fn print(borrowed self) raises:
-        for i in range(self.width):
-            print(self.qudit[0, i * 2].re, self.qudit[0, i * 2].im)
-            print(self.qudit[0, i * 2 + 1].re, self.qudit[0, i * 2 + 1].im)
+        self.qudit.print()
 
 fn main() raises:
-    pass
+    var State = Qudit(3)
+    var Gates = QuantumGates()
+    var q1 = Qubit("1")
+    var q2 = Qubit("1")
+    var q3 = Qubit("1")
+    State[0] = q1
+    State[1] = q2
+    State[2] = q3
+    var r = Gates.CCNOT(State)
+    r.print()
