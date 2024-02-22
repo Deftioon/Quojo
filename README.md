@@ -78,25 +78,36 @@ var pBit = Gates.S(myQubit, phi)
 ```
 
 ### Creating a Qudit (Quantum Register)
-Use the `Qudit` Struct to create a qudit using a string representing the basis state.
+A Qudit is analogically the same as a classical register; it stores Qubits. 
+
+A Qudit can be initialized with the `Qudit` struct.
 ```py
-var myQudit = Qudit("01")
+# Qudit(width: Int)
+var myQudit = Qudit(3) # Creates a Qudit with a width of 3 -> It can store 3 Qubits
 ```
-The mapping of String to Basis State is as follows:
 
-`"00"` $\rightarrow|00\rangle$
+Qubits can be stored and manipulated with the `__getitem__` and `__setitem__` methods.
+```py
+var p = Qubit("0")
+var q = Qubit("1")
+myQudit[0] = p
+myQudit[1] = q
+myQudit[2].print() # This works because every element of a Qudit is a Qubit
+# Prints 0.0 0.0
+```
 
-`"00"` $\rightarrow|01\rangle$
+Qudits can be printed with `print()`. Print format is yet to be formatted.
+```py
+myQudit.print()
+# 1.0 0.0
+# 0.0 0.0
+# 0.0 0.0
+# 1.0 0.0
+# 0.0 0.0
+# 0.0 0.0
+```
 
-`"00"` $\rightarrow|10\rangle$
-
-`"00"` $\rightarrow|11\rangle$
-
-This applies similarly to other Qudit sizes ($|000\rangle$, $|0000\rangle$, ...).
-
-Any length of string within technical limitations is possible for any amount of Qubits in the Qudit.
-
-### Quantum Circuits
+### Quantum Wires
 Yet to be implemented.
 
 ## Complex Number Module
