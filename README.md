@@ -4,8 +4,10 @@ A Quantum Computing Machine written in Mojo
 ## TODO:
 - Add Qudit Functionality
 - Implement Quantum Wires
+- Implement Quantum Circuits
 - Add Sample Programs (Quantum Search, Quantum Teleportation)
 - Optimize code and make it more readable
+  - Parallelize Quantum Gates
 
 ## Usage
 ### Creating a Qubit (Quantum Bit)
