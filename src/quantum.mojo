@@ -41,6 +41,25 @@ struct QuantumGates:
         self.mCNOT[2, 3] = comp.ComplexNum(1, 0)
         self.mCNOT[3, 2] = comp.ComplexNum(1, 0)
 
+        # Initialise SWAP Gate
+        self.mSWAP = comp.ComplexMatrix(4, 4)
+        self.mSWAP[0, 0] = comp.ComplexNum(1, 0)
+        self.mSWAP[1, 2] = comp.ComplexNum(1, 0)
+        self.mSWAP[2, 1] = comp.ComplexNum(1, 0)
+        self.mSWAP[3, 3] = comp.ComplexNum(1, 0)
+
+        # CCNOT Gate
+        self.mCCNOT = comp.ComplexMatrix(8, 8)
+        self.mCCNOT[0, 0] = comp.ComplexNum(1, 0)
+        self.mCCNOT[1, 1] = comp.ComplexNum(1, 0)
+        self.mCCNOT[2, 2] = comp.ComplexNum(1, 0)
+        self.mCCNOT[3, 3] = comp.ComplexNum(1, 0)
+        self.mCCNOT[4, 4] = comp.ComplexNum(1, 0)
+        self.mCCNOT[5, 5] = comp.ComplexNum(1, 0)
+        self.mCCNOT[6, 7] = comp.ComplexNum(1, 0)
+        self.mCCNOT[7, 6] = comp.ComplexNum(1, 0)
+
+
     # One Qubit Gates
 
     fn Hadamard(borrowed self, other: Qubit) raises -> Qubit:
@@ -109,6 +128,15 @@ struct QuantumGates:
         mCU[3, 2] = gate[1, 0]
         mCU[3, 3] = gate[1, 1]
         return mCU
+
+    fn SWAP(borrowed self, other: Qudit) raises -> Qudit:
+        return Qudit(other.qudit @ self.mSWAP)
+    
+    # Three Qubit Gates
+
+    fn CCNOT(borrowed self, other: Qudit) raises -> Qudit:
+        return Qudit(other.qudit @ self.mCCNOT)
+
 
 struct Qubit:
     var qubit: comp.ComplexMatrix
