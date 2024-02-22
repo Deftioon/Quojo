@@ -84,8 +84,17 @@ struct Qubit:
     fn __init__(inout self, state: comp.ComplexMatrix) raises:
         self.qubit = state
     
+    fn __init__(inout self) raises:
+        self.qubit = comp.ComplexMatrix(1, 2)
+    
     fn __copyinit__(inout self, existing: Self):
         self.qubit = existing.qubit
+
+    fn __getitem__(borrowed self, index: Int) raises -> comp.ComplexNum:
+        return self.qubit[0, index]
+    
+    fn __setitem__(inout self, index: Int, value: comp.ComplexNum) raises:
+        self.qubit[0, index] = value
 
     fn print(borrowed self) raises:
         for i in range(2):
@@ -105,21 +114,30 @@ struct Qubit:
         
 struct Qudit:
     var width: Int
-    var qudit: comp.ComplexMatrix
+    var qudit: comp.ComplexArray
 
-    fn __init__(inout self, state: StringLiteral) raises:
-        var Stringed = String(state)
-        self.width = len(Stringed)
-        var binint = atol(Stringed)
-        var statePhase = 0
-        var power = 0
-        while binint > 0:
-            statePhase += 2 ** power * (binint % 10)
-            binint = binint // 10
-            power += 1
-        self.qudit = comp.ComplexMatrix(1, 2 ** self.width)
-        self.qudit[0, statePhase] = comp.ComplexNum(1, 0)
-        self.qudit.print()
+    fn __init__(inout self, size: Int) raises:
+        self.width = size
+        self.qudit = comp.ComplexArray(size * 2)
+    
+    fn __getitem__(borrowed self, index: Int) raises -> Qubit:
+        if index < 0 or index >= self.width:
+            raise "Index out of range"
+        var result = Qubit()
+        result[0] = self.qudit[index * 2]
+        result[1] = self.qudit[index * 2 + 1]
+        return result
+
+    fn __setitem__(inout self, index: Int, value: Qubit) raises:
+        if index < 0 or index >= self.width:
+            raise "Index out of range"
+        self.qudit[index * 2] = value[0]
+        self.qudit[index * 2 + 1] = value[1]
+    
+    fn print(borrowed self) raises:
+        for i in range(self.width):
+            print(self.qudit[i * 2].re, self.qudit[i * 2].im)
+            print(self.qudit[i * 2 + 1].re, self.qudit[i * 2 + 1].im)
     
 fn main() raises:
-    var State = Qudit("1101")
+    pass
