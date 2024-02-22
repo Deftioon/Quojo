@@ -1,5 +1,5 @@
-# Quantum-Mojo
-A Quantum Computing Machine written in Mojo
+# Quojo
+A Quantum Computing Simulation written in Mojo
 
 ## TODO:
 - Add Qudit Functionality
