@@ -111,7 +111,7 @@ var pBit = Gates.S(myQubit, phi)
 ```
 
 #### Gates operating on Qudits
-- CNOT
+- CNOT - Only operable on Qudits of width 2
 ```py
 var myQudit = Qudit(2)
 var p = Qubit("0")
@@ -125,7 +125,28 @@ r.print()
 # 1.0 0.0
 # 0.0 0.0
 ```
-
+- SWAP - Only Operable on Qudits of width 2
+```py
+var r = Gates.SWAP(myQudit)
+r.print()
+# 1.0 0.0
+# 0.0 0.0
+# 0.0 0.0
+# 1.0 0.0
+```
+- CCNOT (Toffioli - Only Operable on Qudits of width 3)
+```py
+var myQudit = Qudit(3)
+var p = Qubit("0")
+var q = Qubit("1")
+var k = Qubit("1")
+myQudit[0] = p
+myQudit[1] = q
+myQudit[2] = k
+var r = Gates.CCNOT(myQudit)
+r.print()
+```
+CCNOT does not currently work.
 ### Quantum Wires
 Yet to be implemented.
 

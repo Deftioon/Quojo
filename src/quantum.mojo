@@ -9,6 +9,8 @@ struct QuantumGates:
     var mY: comp.ComplexMatrix
     var mZ: comp.ComplexMatrix
     var mCNOT: comp.ComplexMatrix
+    var mSWAP: comp.ComplexMatrix
+    var mCCNOT: comp.ComplexMatrix
 
     fn __init__(inout self) raises:
 
@@ -107,6 +109,8 @@ struct QuantumGates:
     # Two Qubit Gates
     
     fn CNOT(borrowed self, other: Qudit) raises -> Qudit:
+        if other.width != 2:
+            raise "Invalid Qudit Size"
         return Qudit(other.qudit @ self.mCNOT)
 
     fn CU(borrowed self, other: Qudit, gate: comp.ComplexMatrix) raises -> Qudit:
@@ -216,10 +220,4 @@ struct Qudit:
             print(self.qudit[0, i * 2 + 1].re, self.qudit[0, i * 2 + 1].im)
 
 fn main() raises:
-    var q = Qubit("0")
-    var p = Qubit("1")
-    var reg = Qudit(2)
-    reg[0] = q
-    reg[1] = p
-    var g = QuantumGates()
-    var r = g.CNOT(reg)
+    pass
