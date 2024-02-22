@@ -77,9 +77,6 @@ var pBit = Gates.P(myQubit, phi) # Here, Phi is an angle measured in radians and
 var pBit = Gates.S(myQubit, phi)
 ```
 
-### Quantum Circuits
-Yet to be implemented.
-
 ### Creating a Qudit (Quantum Register)
 Use the `Qudit` Struct to create a qudit using a string representing the basis state.
 ```py
@@ -99,7 +96,8 @@ This applies similarly to other Qudit sizes ($|000\rangle$, $|0000\rangle$, ...)
 
 Any length of string within technical limitations is possible for any amount of Qubits in the Qudit.
 
-### **Currently Qudits are a Work in Progress and cannot be passed through Quantum Gates, Quantum Circuits, and operated on.**
+### Quantum Circuits
+Yet to be implemented.
 
 ## Complex Number Module
 ### Complex Numbers
