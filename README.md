@@ -2,8 +2,6 @@
 A Quantum Computing Simulation written in Mojo
 
 ## TODO:
-- Implement CNOT and Toffioli Gates
-- Implement Quantum Wires
 - Implement Quantum Circuits
 - Add Sample Programs (Quantum Search, Quantum Teleportation)
 - Optimize code and make it more readable
