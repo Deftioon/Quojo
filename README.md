@@ -74,6 +74,7 @@ var hBit = Gates.H(myQubit)
 - Phase Shift (P, S) Gate
 ```py
 var pBit = Gates.P(myQubit, phi) # Here, Phi is an angle measured in radians and rotates the Qubit by phi radians on the z axis on the Bloch Sphere
+var pBit = Gates.S(myQubit, phi)
 ```
 
 ### Quantum Circuits

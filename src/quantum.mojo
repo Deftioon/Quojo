@@ -5,9 +5,9 @@ from math import sin, cos
 struct QuantumGates:
 
     var HadamardMatrix: comp.ComplexMatrix
-    var X: comp.ComplexMatrix
-    var Y: comp.ComplexMatrix
-    var Z: comp.ComplexMatrix
+    var mX: comp.ComplexMatrix
+    var mY: comp.ComplexMatrix
+    var mZ: comp.ComplexMatrix
 
     fn __init__(inout self) raises:
 
@@ -21,52 +21,52 @@ struct QuantumGates:
         self.HadamardMatrix = self.HadamardMatrix * (1 / (2 ** 0.5))
 
         # Initialise Pauli- X,Y,Z Gates
-        self.X = comp.ComplexMatrix(2, 2)
-        self.X[0, 1] = comp.ComplexNum(1, 0)
-        self.X[1, 0] = comp.ComplexNum(1, 0)
+        self.mX = comp.ComplexMatrix(2, 2)
+        self.mX[0, 1] = comp.ComplexNum(1, 0)
+        self.mX[1, 0] = comp.ComplexNum(1, 0)
 
-        self.Y = comp.ComplexMatrix(2, 2)
-        self.Y[0, 1] = comp.ComplexNum(0, -1)
-        self.Y[1, 0] = comp.ComplexNum(0, 1)
+        self.mY = comp.ComplexMatrix(2, 2)
+        self.mY[0, 1] = comp.ComplexNum(0, -1)
+        self.mY[1, 0] = comp.ComplexNum(0, 1)
 
-        self.Z = comp.ComplexMatrix(2, 2)
-        self.Z[0, 0] = comp.ComplexNum(1, 0)
-        self.Z[1, 1] = comp.ComplexNum(-1, 0)
+        self.mZ = comp.ComplexMatrix(2, 2)
+        self.mZ[0, 0] = comp.ComplexNum(1, 0)
+        self.mZ[1, 1] = comp.ComplexNum(-1, 0)
 
     fn Hadamard(borrowed self, other: Qubit) raises -> Qubit:
         return Qubit(other.qubit @ self.HadamardMatrix)
     
     fn PauliX(borrowed self, other: Qubit) raises -> Qubit:
-        return Qubit(other.qubit @ self.X)
+        return Qubit(other.qubit @ self.mX)
     
     fn PauliY(borrowed self, other: Qubit) raises -> Qubit:
-        return Qubit(other.qubit @ self.Y)
+        return Qubit(other.qubit @ self.mY)
     
     fn PauliZ(borrowed self, other: Qubit) raises -> Qubit:
-        return Qubit(other.qubit @ self.Z)
+        return Qubit(other.qubit @ self.mZ)
     
     fn PhaseShift(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
-        var P = comp.ComplexMatrix(2, 2)
-        P[0, 0] = comp.ComplexNum(1, 0)
-        P[1, 1] = comp.ComplexNum(cos[DType.float64, 1](phi), sin[DType.float64, 1](phi))
-        return Qubit(P @ other.qubit)
+        var mP = comp.ComplexMatrix(2, 2)
+        mP[0, 0] = comp.ComplexNum(1, 0)
+        mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](phi), sin[DType.float64, 1](phi))
+        return Qubit(mP @ other.qubit)
 
-    fn Ha(borrowed self, other: Qubit) raises -> Qubit:
+    fn H(borrowed self, other: Qubit) raises -> Qubit:
         return self.Hadamard(other)
     
-    fn pX(borrowed self, other: Qubit) raises -> Qubit:
+    fn X(borrowed self, other: Qubit) raises -> Qubit:
         return self.PauliX(other)
     
-    fn pY(borrowed self, other: Qubit) raises -> Qubit:
+    fn Y(borrowed self, other: Qubit) raises -> Qubit:
         return self.PauliY(other)
     
-    fn pZ(borrowed self, other: Qubit) raises -> Qubit:
+    fn Z(borrowed self, other: Qubit) raises -> Qubit:
         return self.PauliZ(other)
 
-    fn Ps(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
+    fn P(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
         return self.PhaseShift(other, phi)
     
-    fn St(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
+    fn S(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
         return self.PhaseShift(other, phi)
     
 
@@ -123,7 +123,6 @@ struct Qudit:
     
 fn main() raises:
     var State = Qubit("1")
-    var Gates = QuantumGates()
-    var Circ = Gates.Hadamard(Gates.PauliZ(Gates.PauliY(Gates.Hadamard(State))))
+    var G = QuantumGates()
+    var Circ = G.H(G.Y(State))
     Circ.print()
-    Circ.measure()
