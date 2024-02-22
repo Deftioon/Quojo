@@ -164,6 +164,10 @@ struct Qudit:
         self.width = state.rows * 2
         self.qudit = state
     
+    fn __copyinit__(inout self, existing: Self):
+        self.width = existing.width
+        self.qudit = existing.qudit
+
     fn __getitem__(borrowed self, index: Int) raises -> Qubit:
         if index < 0 or index >= self.width:
             raise "Index out of range"
@@ -182,7 +186,7 @@ struct Qudit:
         for i in range(self.width):
             print(self.qudit[0, i * 2].re, self.qudit[0, i * 2].im)
             print(self.qudit[0, i * 2 + 1].re, self.qudit[0, i * 2 + 1].im)
-    
+
 fn main() raises:
     var q = Qubit("0")
     var p = Qubit("1")
@@ -191,4 +195,3 @@ fn main() raises:
     reg[1] = p
     var g = QuantumGates()
     var r = g.CNOT(reg)
-    r.print()https://github.com/Deftioon/Quojo
