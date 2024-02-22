@@ -90,7 +90,7 @@ struct QuantumGates:
     fn CNOT(borrowed self, other: Qudit) raises -> Qudit:
         return Qudit(other.qudit @ self.mCNOT)
 
-    fn CU(borrowed self, other: Qudit, gate: comp.ComplexMatrix):
+    fn CU(borrowed self, other: Qudit, gate: comp.ComplexMatrix) raises -> Qudit:
         var mCU = comp.ComplexMatrix(4, 4)
         mCU[0, 0] = comp.ComplexNum(1, 0)
         mCU[1, 1] = comp.ComplexNum(1, 0)
