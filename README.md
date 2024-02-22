@@ -47,8 +47,8 @@ You can measure a Qubit with the `measure` method from the `Qubit` struct.
 ```py
 var myQubit = Qubit(1)
 
-# Qubit.measure() -> ComplexMatrix
-myQubit.measure().print()
+# Qubit.measure() -> None
+myQubit.measure()
 ```
 
 ### Quantum Gates
