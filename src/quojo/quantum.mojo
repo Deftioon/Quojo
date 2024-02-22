@@ -1,6 +1,7 @@
 import complexNum as comp
 import random
 from math import sin, cos
+from collections.vector import DynamicVector
 
 struct QuantumGates:
 
@@ -156,8 +157,6 @@ struct QuantumGates:
     fn CCX(borrowed self, other: Qudit) raises -> Qudit:
         return self.CCNOT(other)
 
-
-
 struct Qubit:
     var qubit: comp.ComplexMatrix
 
@@ -188,7 +187,7 @@ struct Qubit:
         for i in range(2):
             print(self.qubit[0, i].re, self.qubit[0, i].im)
         
-    fn measure(inout self) raises:
+    fn measure(inout self) raises -> Qubit:
         var randNum = random.random_float64(0.0, 1.0)
         var alpha = (self.qubit[0, 0] * self.qubit[0,0]).magnitude()
         if randNum < alpha:
@@ -198,7 +197,7 @@ struct Qubit:
             self.qubit = comp.ComplexMatrix(1, 2)
             self.qubit[0, 1] = comp.ComplexNum(1, 0)
 
-        self.qubit.print()
+        return self
         
 struct Qudit:
     var width: Int
@@ -233,14 +232,62 @@ struct Qudit:
     fn print(borrowed self) raises:
         self.qudit.print()
 
+struct QuantumWire:
+    var g: QuantumGates
+    var wire: DynamicVector[String]
+    var valid_states: String
+
+    fn __init__(inout self) raises:
+        self.g = QuantumGates()
+        self.wire = DynamicVector[String]()
+        self.valid_states = "H X Y Z M"
+
+    fn __init__(inout self, states: String) raises:
+        self.g = QuantumGates()
+        var split_state = states.rstrip().lstrip().split(" ")
+        self.valid_states = "H X Y Z M"
+        self.wire = DynamicVector[String]()
+        for i in range(len(split_state)):
+            if self.valid_states.find(split_state[i]) == -1:
+                raise "Invalid State in String"
+            self.wire.push_back(split_state[i])
+    
+    fn add(inout self, state: String) raises:
+        self.wire.push_back(state)
+    
+    fn pop(inout self) raises -> String:
+        return self.wire.pop_back()
+    
+    fn print(borrowed self) raises:
+        print_no_newline("▯ -")
+        for i in range(len(self.wire)):
+            print_no_newline(self.wire[i])
+            print_no_newline("-")
+        print_no_newline(">")
+        print()
+
+    fn parse(inout self, applied: Qubit) raises -> Qubit:
+        var temp = applied
+        var result = Qubit()
+        for i in range(len(self.wire) -1, -1, -1):
+            if self.wire[i] == "H":
+                result = self.g.H(temp)
+            elif self.wire[i] == "X":
+                result = self.g.X(temp)
+            elif self.wire[i] == "Y":
+                result = self.g.Y(temp)
+            elif self.wire[i] == "Z":
+                result = self.g.Z(temp)
+            elif self.wire[i] == "M":
+                result = temp.measure()
+            else:
+                raise "Invalid State in Wire"
+            temp = result
+        return result
+
+
 fn main() raises:
-    var State = Qudit(3)
-    var Gates = QuantumGates()
-    var q1 = Qubit("1")
-    var q2 = Qubit("1")
-    var q3 = Qubit("1")
-    State[0] = q1
-    State[1] = q2
-    State[2] = q3
-    var r = Gates.CCNOT(State)
-    r.print()
+    var wire = QuantumWire("H Z H")
+    var qubit = Qubit("0")
+    var res = wire.parse(qubit)
+    res.measure().print()
