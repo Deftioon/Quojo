@@ -8,6 +8,7 @@ struct QuantumGates:
     var mX: comp.ComplexMatrix
     var mY: comp.ComplexMatrix
     var mZ: comp.ComplexMatrix
+    var mCNOT: comp.ComplexMatrix
 
     fn __init__(inout self) raises:
 
@@ -33,6 +34,15 @@ struct QuantumGates:
         self.mZ[0, 0] = comp.ComplexNum(1, 0)
         self.mZ[1, 1] = comp.ComplexNum(-1, 0)
 
+        # Initialise CNOT Gate
+        self.mCNOT = comp.ComplexMatrix(4, 4)
+        self.mCNOT[0, 0] = comp.ComplexNum(1, 0)
+        self.mCNOT[1, 1] = comp.ComplexNum(1, 0)
+        self.mCNOT[2, 3] = comp.ComplexNum(1, 0)
+        self.mCNOT[3, 2] = comp.ComplexNum(1, 0)
+
+    # One Qubit Gates
+
     fn Hadamard(borrowed self, other: Qubit) raises -> Qubit:
         return Qubit(other.qubit @ self.HadamardMatrix)
     
@@ -49,7 +59,7 @@ struct QuantumGates:
         var mP = comp.ComplexMatrix(2, 2)
         mP[0, 0] = comp.ComplexNum(1, 0)
         mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](phi), sin[DType.float64, 1](phi))
-        return Qubit(other.qubit @ mp)
+        return Qubit(other.qubit @ mP)
 
     fn H(borrowed self, other: Qubit) raises -> Qubit:
         return self.Hadamard(other)
@@ -68,6 +78,12 @@ struct QuantumGates:
     
     fn S(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
         return self.PhaseShift(other, phi)
+    
+    # Two Qubit Gates
+    
+    fn CNOT(borrowed self, other: Qudit) raises -> Qudit:
+        return Qudit(other.qudit @ self.mCNOT)
+
 
 struct Qubit:
     var qubit: comp.ComplexMatrix
@@ -113,30 +129,41 @@ struct Qubit:
         
 struct Qudit:
     var width: Int
-    var qudit: comp.ComplexArray
+    var qudit: comp.ComplexMatrix
 
     fn __init__(inout self, size: Int) raises:
         self.width = size
-        self.qudit = comp.ComplexArray(size * 2)
+        self.qudit = comp.ComplexMatrix(1, size * 2)
+    
+    fn __init__(inout self, state: comp.ComplexMatrix) raises:
+        self.width = state.rows * 2
+        self.qudit = state
     
     fn __getitem__(borrowed self, index: Int) raises -> Qubit:
         if index < 0 or index >= self.width:
             raise "Index out of range"
         var result = Qubit()
-        result[0] = self.qudit[index * 2]
-        result[1] = self.qudit[index * 2 + 1]
+        result[0] = self.qudit[0, index * 2]
+        result[1] = self.qudit[0, index * 2 + 1]
         return result
 
     fn __setitem__(inout self, index: Int, value: Qubit) raises:
         if index < 0 or index >= self.width:
             raise "Index out of range"
-        self.qudit[index * 2] = value[0]
-        self.qudit[index * 2 + 1] = value[1]
+        self.qudit[0, index * 2] = value[0]
+        self.qudit[0, index * 2 + 1] = value[1]
     
     fn print(borrowed self) raises:
         for i in range(self.width):
-            print(self.qudit[i * 2].re, self.qudit[i * 2].im)
-            print(self.qudit[i * 2 + 1].re, self.qudit[i * 2 + 1].im)
+            print(self.qudit[0, i * 2].re, self.qudit[0, i * 2].im)
+            print(self.qudit[0, i * 2 + 1].re, self.qudit[0, i * 2 + 1].im)
     
 fn main() raises:
-    pass
+    var q = Qubit("0")
+    var p = Qubit("1")
+    var reg = Qudit(2)
+    reg[0] = q
+    reg[1] = p
+    var g = QuantumGates()
+    var r = g.CNOT(reg)
+    r.print()https://github.com/Deftioon/Quojo

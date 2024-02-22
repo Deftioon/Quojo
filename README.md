@@ -52,32 +52,6 @@ var myQubit = Qubit(1)
 myQubit.measure()
 ```
 
-### Quantum Gates
-
-Quantum Gates are unitary gates that can be multiplied with Qubits to manipulate them.
-
-```py
-let Gates = QuantumGates()
-var myQubit = Qubit(0)
-```
-
-#### Currently Supported Gates:
-- Pauli X, Y, and Z gates
-```py
-var xBit = Gates.X(myQubit)
-var yBit = Gates.Y(myQubit)
-var zBit = Gates.Z(myQubit)
-```
-- Hadamard Gate
-```py
-var hBit = Gates.H(myQubit)
-```
-- Phase Shift (P, S) Gate
-```py
-var pBit = Gates.P(myQubit, phi) # Here, Phi is an angle measured in radians and rotates the Qubit by phi radians on the z axis on the Bloch Sphere
-var pBit = Gates.S(myQubit, phi)
-```
-
 ### Creating a Qudit (Quantum Register)
 A Qudit is analogically the same as a classical register; it stores Qubits. 
 
@@ -107,6 +81,48 @@ myQudit.print()
 # 0.0 0.0
 # 1.0 0.0
 # 0.0 0.0
+# 0.0 0.0
+```
+
+### Quantum Gates
+
+Quantum Gates are unitary matrices that can be multiplied with Qubits to manipulate them.
+
+```py
+let Gates = QuantumGates()
+var myQubit = Qubit(0)
+```
+
+#### Currently Supported Gates:
+- Pauli X, Y, and Z gates
+```py
+var xBit = Gates.X(myQubit)
+var yBit = Gates.Y(myQubit)
+var zBit = Gates.Z(myQubit)
+```
+- Hadamard Gate
+```py
+var hBit = Gates.H(myQubit)
+```
+- Phase Shift (P, S) Gate
+```py
+var pBit = Gates.P(myQubit, phi) # Here, Phi is an angle measured in radians and rotates the Qubit by phi radians on the z axis on the Bloch Sphere
+var pBit = Gates.S(myQubit, phi)
+```
+
+#### Gates operating on Qudits
+- CNOT
+```py
+var myQudit = Qudit(2)
+var p = Qubit("0")
+var q = Qubit("1")
+myQudit[0] = p
+myQudit[1] = q
+var r = Gates.CNOT(myQudit)
+r.print()
+# 1.0 0.0
+# 0.0 0.0
+# 1.0 0.0
 # 0.0 0.0
 ```
 
