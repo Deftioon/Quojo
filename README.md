@@ -94,7 +94,9 @@ var q = Qubit("1")
 myQudit[0] = p
 myQudit[1] = q
 myQudit[2].print() # This works because every element of a Qudit is a Qubit
-# Prints 0.0 0.0
+# Prints
+# 0.0 0.0
+# 0.0 0.0
 ```
 
 Qudits can be printed with `print()`. Print format is yet to be formatted.
