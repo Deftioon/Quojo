@@ -149,6 +149,18 @@ r.print()
 `CCX()` is also a valid function, running the `CCNOT` method.
 Current CCNOT implementation is cheesy and flimsy, expect errors to occur.
 
+### Parallel Gates?
+Parallel Gates will certainly be implemented in the future, but it is not top priority as it is intractable, or rather, it uses too many resources to be applied practically. To put this into perspective, lets look at the Hadamard Gate. 
+
+To apply a Hadamard Gate on two qubits together, we need a 4x4 Matrix.
+
+Three qubits corresponds to a 8x8,
+
+And at 16 Qubits we're looking at a gate size of 65,536 by 65,536, which takes quite a while to multiply. The lower-bound time complexity for multiplying two of such matrices is $\Omega(n^2\log{n})$
+
+To quote Wikipedia (not good source I know),
+> The time complexity for multiplying two $n\times n$ matrices is at least $\Omega(n^2\log{n})$, if using a classical machine. Because the size of a gate that operates on $q$ qubits is $2^q\times 2^q$ it means that the time for simulating a step in a quantum circuit (by means of multiplying the gates) that operates on generic entangled states is $\Omega(2^{q^2}\log{2^q})$. For this reason it is believed to be intractable to simulate large entangled quantum systems using classical computers.
+
 ### Quantum Wires
 Yet to be implemented.
 
