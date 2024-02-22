@@ -117,12 +117,9 @@ struct Qudit:
             statePhase += 2 ** power * (binint % 10)
             binint = binint // 10
             power += 1
-        
-        self.qudit = comp.ComplexMatrix(1, self.width*2)
+        self.qudit = comp.ComplexMatrix(1, 2 ** self.width)
         self.qudit[0, statePhase] = comp.ComplexNum(1, 0)
+        self.qudit.print()
     
 fn main() raises:
-    var State = Qubit("1")
-    var G = QuantumGates()
-    var Circ = G.H(G.Y(State))
-    Circ.print()
+    var State = Qudit("1101")
