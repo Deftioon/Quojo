@@ -183,6 +183,7 @@ struct ComplexMatrix:
                 result.data[j * self.rows + i] = ~self.data[i * self.cols + j]
         return result
 
+
     fn print(borrowed self) raises -> None:
         for i in range(self.rows):
             for j in range(self.cols):
@@ -190,4 +191,7 @@ struct ComplexMatrix:
                 self.data[i * self.cols + j].print()
 
 fn main() raises:
-    pass
+    var matrix1 = ComplexMatrix(2,2)
+    var matrix2 = ComplexMatrix(1,2)
+    var matrix3 = matrix2 @ matrix1
+    matrix3.print()

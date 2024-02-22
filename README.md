@@ -1,6 +1,11 @@
 # Quantum-Mojo
 A Quantum Computing Machine written in Mojo
 
+## TODO:
+- Add Qudit Functionality
+- Implement Quantum Wires
+- Add Sample Programs (Quantum Search, Quantum Teleportation)
+
 ## Usage
 ### Creating a Qubit (Quantum Bit)
 Use the `Qubit` Struct to create a qubit using a string representing a basis state.
@@ -16,7 +21,18 @@ The mapping of String to Basis State is as follows:
 
 It is not allowed to input any String other than `"0"` or `"1"`, doing so will create an `Exception` and terminate the code if unhandled.
 
-You can use the `print` method in the `Qubit` struct to print the contents of the Qubit (this is NOT recommended as it breaks the rules of physics, but only serves for observing purposes and does not affect the workings of the circuits)
+The `print` method in the `Qubit` struct can be used to print the contents of the Qubit (this is NOT recommended as it breaks the rules of physics, but only serves for observing purposes and does not affect the workings of the circuits)
+
+Constructing a Qubit with a predefined state is also possible.
+```py
+import complexNum as complx
+var State = complx.ComplexMatrix(1,2)
+State[0,0] = complx.ComplexNum(0.8,0)
+State[0,1] = complx.ComplexNum(0.6,0)
+
+var myQubit = Qubit(State)
+```
+The magnitudes of the squares of the two components of the Qubit, here being `State[0, 0]` and `State[0, 1]`, **must** sum to 1 by the 2nd axiom of probability theory. This is not strongly restrained so far, but is assumed when **measuring**.
 
 ### Measuring
 Measuring a Qubit is an irreversible operation, and therefore after measuring a Qubit the object will be overwritten to whatever was measured: either $|0\rangle$ or $|1\rangle$.
@@ -30,7 +46,6 @@ var myQubit = Qubit(1)
 
 # Qubit.measure() -> ComplexMatrix
 myQubit.measure().print()
-
 ```
 
 ### Quantum Gates
@@ -217,3 +232,7 @@ var conj_trans = myMatrix.conjugate_transpose()
 **Printing**
 
 And of course, you can print the contents with `ComplexMatrix.print()`
+
+## Sample Programs
+### Quantum Search
+With a classical computer, a linear search has time complexity $O(n)$. With a Quantum Computer, a Quantum Search has time complexity $O(\sqrt{n})$.
