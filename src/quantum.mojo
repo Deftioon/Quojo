@@ -60,6 +60,12 @@ struct QuantumGates:
         mP[0, 0] = comp.ComplexNum(1, 0)
         mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](phi), sin[DType.float64, 1](phi))
         return Qubit(other.qubit @ mP)
+    
+    fn PhaseMatrix(borrowed self, phi: Float64) raises -> comp.ComplexMatrix:
+        var mP = comp.ComplexMatrix(2, 2)
+        mP[0, 0] = comp.ComplexNum(1, 0)
+        mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](phi), sin[DType.float64, 1](phi))
+        return mP
 
     fn H(borrowed self, other: Qubit) raises -> Qubit:
         return self.Hadamard(other)
@@ -84,6 +90,25 @@ struct QuantumGates:
     fn CNOT(borrowed self, other: Qudit) raises -> Qudit:
         return Qudit(other.qudit @ self.mCNOT)
 
+    fn CU(borrowed self, other: Qudit, gate: comp.ComplexMatrix):
+        var mCU = comp.ComplexMatrix(4, 4)
+        mCU[0, 0] = comp.ComplexNum(1, 0)
+        mCU[1, 1] = comp.ComplexNum(1, 0)
+        mCU[2, 2] = gate[0, 0]
+        mCU[2, 3] = gate[0, 1]
+        mCU[3, 2] = gate[1, 0]
+        mCU[3, 3] = gate[1, 1]
+        return Qudit(other.qudit @ mCU)
+
+    fn mCU(borrowed self, gate: comp.ComplexMatrix) raises -> comp.ComplexMatrix:
+        var mCU = comp.ComplexMatrix(4, 4)
+        mCU[0, 0] = comp.ComplexNum(1, 0)
+        mCU[1, 1] = comp.ComplexNum(1, 0)
+        mCU[2, 2] = gate[0, 0]
+        mCU[2, 3] = gate[0, 1]
+        mCU[3, 2] = gate[1, 0]
+        mCU[3, 3] = gate[1, 1]
+        return mCU
 
 struct Qubit:
     var qubit: comp.ComplexMatrix
