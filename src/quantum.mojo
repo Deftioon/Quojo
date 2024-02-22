@@ -49,7 +49,7 @@ struct QuantumGates:
         var mP = comp.ComplexMatrix(2, 2)
         mP[0, 0] = comp.ComplexNum(1, 0)
         mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](phi), sin[DType.float64, 1](phi))
-        return Qubit(mP @ other.qubit)
+        return Qubit(other.qubit @ mp)
 
     fn H(borrowed self, other: Qubit) raises -> Qubit:
         return self.Hadamard(other)
@@ -68,7 +68,6 @@ struct QuantumGates:
     
     fn S(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
         return self.PhaseShift(other, phi)
-    
 
 struct Qubit:
     var qubit: comp.ComplexMatrix
