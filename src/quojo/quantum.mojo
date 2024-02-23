@@ -62,6 +62,14 @@ struct QuantumGates:
         self.mCCNOT[6, 7] = comp.ComplexNum(1, 0)
         self.mCCNOT[7, 6] = comp.ComplexNum(1, 0)
 
+    fn __copyinit__(inout self, existing: Self):
+        self.HadamardMatrix = existing.HadamardMatrix
+        self.mX = existing.mX
+        self.mY = existing.mY
+        self.mZ = existing.mZ
+        self.mCNOT = existing.mCNOT
+        self.mSWAP = existing.mSWAP
+        self.mCCNOT = existing.mCCNOT
 
     # One Qubit Gates
 
@@ -188,7 +196,10 @@ struct Qubit:
             print(self.qubit[0, i].re, self.qubit[0, i].im)
         
     fn measure(inout self) raises -> Qubit:
-        var randNum = random.random_float64(0.0, 1.0)
+        
+        self.qubit.print()
+        random.seed()
+        var randNum = random.random_float64()
         var alpha = (self.qubit[0, 0] * self.qubit[0,0]).magnitude()
         if randNum < alpha:
             self.qubit = comp.ComplexMatrix(1, 2)
@@ -197,6 +208,8 @@ struct Qubit:
             self.qubit = comp.ComplexMatrix(1, 2)
             self.qubit[0, 1] = comp.ComplexNum(1, 0)
 
+        print("Measured Qubit: ")
+        self.qubit.print()
         return self
         
 struct Qudit:
@@ -251,6 +264,21 @@ struct QuantumWire:
             if self.valid_states.find(split_state[i]) == -1:
                 raise "Invalid State in String"
             self.wire.push_back(split_state[i])
+        
+    fn __copyinit__(inout self, existing: Self):
+        self.g = existing.g
+        self.wire = existing.wire
+        self.valid_states = existing.valid_states
+    
+    fn help(borrowed self) raises:
+        print("-------QUANTUM WIRE HELP--------")
+        print('Valid States: "H X Y Z M"')
+        print("H: Hadamard Gate")
+        print("X: Pauli-X Gate")
+        print("Y: Pauli-Y Gate")
+        print("Z: Pauli-Z Gate")
+        print("M: Measure Qubit")
+        print("--------------------------------")
     
     fn add(inout self, state: String) raises:
         self.wire.push_back(state)
@@ -269,7 +297,7 @@ struct QuantumWire:
     fn parse(inout self, applied: Qubit) raises -> Qubit:
         var temp = applied
         var result = Qubit()
-        for i in range(len(self.wire) -1, -1, -1):
+        for i in range(len(self.wire)):
             if self.wire[i] == "H":
                 result = self.g.H(temp)
             elif self.wire[i] == "X":
@@ -287,7 +315,7 @@ struct QuantumWire:
 
 
 fn main() raises:
-    var wire = QuantumWire("H Z H")
+    var wire = QuantumWire("H X Y Z M")
+    wire.help()
     var qubit = Qubit("0")
     var res = wire.parse(qubit)
-    res.measure().print()
