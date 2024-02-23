@@ -2,6 +2,7 @@
 A Quantum Computing Simulation written in Mojo
 
 ## TODO:
+- Fix Qubits of more than 3 (they're completely wrong at the moment)
 - Implement Uncomputing
 - Implement Quantum Circuits
 - Add Sample Programs (Quantum Search, Quantum Teleportation)
@@ -51,6 +52,7 @@ myQubit.measure()
 ```
 
 ### Creating a Qudit (Quantum Register)
+**Qudits are implemented completely wrong and are going to be fixed soon $^{TM}$**
 A Qudit is analogically the same as a classical register; it stores Qubits. 
 
 A Qudit can be initialized with the `Qudit` struct.
