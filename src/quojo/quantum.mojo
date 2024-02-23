@@ -122,8 +122,8 @@ struct QuantumGates:
     fn P(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
         return self.PhaseShift(other, phi)
     
-    fn S(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
-        return self.PhaseShift(other, phi)
+    fn S(borrowed self, other: Qubit) raises -> Qubit:
+        return self.PhaseShift(other, 0.5 * 3.14159265358979323846)
     
     fn I(borrowed self, other: Qubit) raises -> Qubit:
         return self.Identity(other)
@@ -264,12 +264,12 @@ struct QuantumWire:
     fn __init__(inout self) raises:
         self.g = QuantumGates()
         self.wire = DynamicVector[String]()
-        self.valid_states = "H X Y Z M I"
+        self.valid_states = "H X Y Z M I S"
 
     fn __init__(inout self, states: String) raises:
         self.g = QuantumGates()
         var split_state = states.rstrip().lstrip().split(" ")
-        self.valid_states = "H X Y Z M I"
+        self.valid_states = "H X Y Z M I S"
         self.wire = DynamicVector[String]()
         for i in range(len(split_state)):
             if self.valid_states.find(split_state[i]) == -1:
@@ -283,12 +283,13 @@ struct QuantumWire:
     
     fn help(borrowed self) raises:
         print("-------QUANTUM WIRE HELP--------")
-        print('Valid States: "I H X Y Z M"')
+        print('Valid States: "I H X Y Z S M"')
         print("I: Identity Gate")
         print("H: Hadamard Gate")
         print("X: Pauli-X Gate")
         print("Y: Pauli-Y Gate")
         print("Z: Pauli-Z Gate")
+        print("S: Phase Gate")
         print("M: Measure Qubit")
         print("--------------------------------")
     
@@ -322,6 +323,8 @@ struct QuantumWire:
                 result = self.g.Y(temp)
             elif self.wire[i] == "Z":
                 result = self.g.Z(temp)
+            elif self.wire[i] == "S":
+                result = self.g.S(temp)
             elif self.wire[i] == "M":
                 result = temp.measure()
             else:
@@ -331,7 +334,7 @@ struct QuantumWire:
 
 
 fn main() raises:
-    var wire = QuantumWire("I M")
-    wire.help()
-    var qubit = Qubit("0")
+    var wire = QuantumWire("I S")
+    var qubit = Qubit("1")
     var res = wire.parse(qubit)
+    res.print()

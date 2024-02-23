@@ -107,6 +107,7 @@ var hBit = Gates.H(myQubit)
 var pBit = Gates.P(myQubit, phi) # Here, Phi is an angle measured in radians and rotates the Qubit by phi radians on the z axis on the Bloch Sphere
 var pBit = Gates.S(myQubit, phi)
 ```
+S by default has a `phi` value of $\frac{\pi}{2}$. To use other `phi` values use the `P` gate.
 
 #### Gates operating on Qudits
 - CNOT - Only operable on Qudits of width 2
@@ -173,12 +174,13 @@ A wire is constructed using a string of gates, each gate separated by a space. `
 ```py
 Wire.help()
 # -------QUANTUM WIRE HELP--------
-# Valid States: "I H X Y Z M"
+# Valid States: "I H X Y Z S M"
 # I: Identity Gate
 # H: Hadamard Gate
 # X: Pauli-X Gate
 # Y: Pauli-Y Gate
 # Z: Pauli-Z Gate
+# S: Phase Gate
 # M: Measure Qubit
 # --------------------------------
 ```
@@ -186,11 +188,22 @@ Gates can be added to Wires with `add`.
 ```py
 Wire.add("H")
 ```
-Gates can be printed with `print` with pretty formatting
+Wires can be printed with `print` with pretty formatting
 ```py
 Wire.print()
 # ▯ -H-X-Y-Z-M-H->
 ```
+
+Qubits can be passed through Wires with the `parse` method.
+```py
+var q = Qubit("0")
+var wire = QuantumWire("H X Y Z H H I H")
+var r = wire.parse(q)
+```
+
+### Quantum Circuits
+Work in Progress
+
 ## Complex Number Module
 ### Complex Numbers
 A Complex Number is able to be created using the `ComplexNum` struct, and is constructed as follows:
