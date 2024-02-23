@@ -2,7 +2,7 @@
 A Quantum Computing Simulation written in Mojo
 
 ## TODO:
-- Fix Qubits of more than 3 (they're completely wrong at the moment)
+- **Fix Qubits of more than 1 (they're completely wrong at the moment)**
 - Implement Uncomputing
 - Implement Quantum Circuits
 - Add Sample Programs (Quantum Search, Quantum Teleportation)
