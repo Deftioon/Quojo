@@ -12,8 +12,14 @@ struct QuantumGates:
     var mCNOT: comp.ComplexMatrix
     var mSWAP: comp.ComplexMatrix
     var mCCNOT: comp.ComplexMatrix
+    var IdentityMatrix: comp.ComplexMatrix
 
     fn __init__(inout self) raises:
+
+        # Initialise Identity Gate
+        self.IdentityMatrix = comp.ComplexMatrix(2, 2)
+        self.IdentityMatrix[0, 0] = comp.ComplexNum(1, 0)
+        self.IdentityMatrix[1, 1] = comp.ComplexNum(1, 0)
 
         # Initialise Hadamard Gate
         self.HadamardMatrix = comp.ComplexMatrix(2, 2)
@@ -70,6 +76,7 @@ struct QuantumGates:
         self.mCNOT = existing.mCNOT
         self.mSWAP = existing.mSWAP
         self.mCCNOT = existing.mCCNOT
+        self.IdentityMatrix = existing.IdentityMatrix
 
     # One Qubit Gates
 
@@ -96,6 +103,9 @@ struct QuantumGates:
         mP[0, 0] = comp.ComplexNum(1, 0)
         mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](phi), sin[DType.float64, 1](phi))
         return mP
+    
+    fn Identity(borrowed self, other: Qubit) raises -> Qubit:
+        return Qubit(other.qubit @ self.IdentityMatrix)
 
     fn H(borrowed self, other: Qubit) raises -> Qubit:
         return self.Hadamard(other)
@@ -114,6 +124,9 @@ struct QuantumGates:
     
     fn S(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
         return self.PhaseShift(other, phi)
+    
+    fn I(borrowed self, other: Qubit) raises -> Qubit:
+        return self.Identity(other)
     
     # Two Qubit Gates
     
@@ -196,8 +209,6 @@ struct Qubit:
             print(self.qubit[0, i].re, self.qubit[0, i].im)
         
     fn measure(inout self) raises -> Qubit:
-        
-        self.qubit.print()
         random.seed()
         var randNum = random.random_float64()
         var alpha = (self.qubit[0, 0] * self.qubit[0,0]).magnitude()
@@ -253,12 +264,12 @@ struct QuantumWire:
     fn __init__(inout self) raises:
         self.g = QuantumGates()
         self.wire = DynamicVector[String]()
-        self.valid_states = "H X Y Z M"
+        self.valid_states = "H X Y Z M I"
 
     fn __init__(inout self, states: String) raises:
         self.g = QuantumGates()
         var split_state = states.rstrip().lstrip().split(" ")
-        self.valid_states = "H X Y Z M"
+        self.valid_states = "H X Y Z M I"
         self.wire = DynamicVector[String]()
         for i in range(len(split_state)):
             if self.valid_states.find(split_state[i]) == -1:
@@ -272,7 +283,8 @@ struct QuantumWire:
     
     fn help(borrowed self) raises:
         print("-------QUANTUM WIRE HELP--------")
-        print('Valid States: "H X Y Z M"')
+        print('Valid States: "I H X Y Z M"')
+        print("I: Identity Gate")
         print("H: Hadamard Gate")
         print("X: Pauli-X Gate")
         print("Y: Pauli-Y Gate")
@@ -281,6 +293,8 @@ struct QuantumWire:
         print("--------------------------------")
     
     fn add(inout self, state: String) raises:
+        if self.valid_states.find(state) == -1:
+                raise "Invalid State in String"
         self.wire.push_back(state)
     
     fn pop(inout self) raises -> String:
@@ -298,7 +312,9 @@ struct QuantumWire:
         var temp = applied
         var result = Qubit()
         for i in range(len(self.wire)):
-            if self.wire[i] == "H":
+            if self.wire[i] == "I":
+                result = self.g.I(temp)
+            elif self.wire[i] == "H":
                 result = self.g.H(temp)
             elif self.wire[i] == "X":
                 result = self.g.X(temp)
@@ -315,7 +331,7 @@ struct QuantumWire:
 
 
 fn main() raises:
-    var wire = QuantumWire("H X Y Z M")
+    var wire = QuantumWire("I M")
     wire.help()
     var qubit = Qubit("0")
     var res = wire.parse(qubit)

@@ -2,6 +2,7 @@
 A Quantum Computing Simulation written in Mojo
 
 ## TODO:
+- Implement Uncomputing
 - Implement Quantum Circuits
 - Add Sample Programs (Quantum Search, Quantum Teleportation)
 - Optimize code and make it more readable
@@ -148,7 +149,7 @@ r.print()
 Current CCNOT implementation is cheesy and flimsy, expect errors to occur.
 
 ### Parallel Gates?
-Parallel Gates will certainly be implemented in the future, but it is not top priority as it is intractable, or rather, it uses too many resources to be applied practically. To put this into perspective, lets look at the Hadamard Gate. 
+Parallel Gates will certainly be implemented in the future, but it is not top priority as it is impractical, or rather, it uses too many resources to be applied practically. To put this into perspective, lets look at the Hadamard Gate. 
 
 To apply a Hadamard Gate on two qubits together, we need a 4x4 Matrix.
 
@@ -160,8 +161,36 @@ To quote Wikipedia (not good source I know),
 > The time complexity for multiplying two $n\times n$ matrices is at least $\Omega(n^2\log{n})$, if using a classical machine. Because the size of a gate that operates on $q$ qubits is $2^q\times 2^q$ it means that the time for simulating a step in a quantum circuit (by means of multiplying the gates) that operates on generic entangled states is $\Omega(2^{q^2}\log{2^q})$. For this reason it is believed to be intractable to simulate large entangled quantum systems using classical computers.
 
 ### Quantum Wires
-Yet to be implemented.
+In Quojo, Quantum Wires serve as a medium to create a sort of "Compound Gate". Gates can be strung together to pass a Qubit through all of them at once. This reduces the need for repeated Gates in the circumstance that a certain sequence of gates needs to be repeated, for example if using a Hadamard and a Pauli X gate, a Quantum Gate can be constructed to call only once to pass a Qubit through both of these gates. If a wire was not used, then it would take two calls and a lot of repetition. 
 
+Quantum Wires also aid in the construction of Quantum Circuits, which are essentially Quantum Wires but involve multiple qubits and multiple wires.
+
+You can construct a Quantum Wire as follows:
+```py
+var Wire = QuantumWire("H X Y Z M")
+```
+A wire is constructed using a string of gates, each gate separated by a space. `Wire.help()` prints a directory of every gate able to be added.
+```py
+Wire.help()
+# -------QUANTUM WIRE HELP--------
+# Valid States: "I H X Y Z M"
+# I: Identity Gate
+# H: Hadamard Gate
+# X: Pauli-X Gate
+# Y: Pauli-Y Gate
+# Z: Pauli-Z Gate
+# M: Measure Qubit
+# --------------------------------
+```
+Gates can be added to Wires with `add`.
+```py
+Wire.add("H")
+```
+Gates can be printed with `print` with pretty formatting
+```py
+Wire.print()
+# ▯ -H-X-Y-Z-M-H->
+```
 ## Complex Number Module
 ### Complex Numbers
 A Complex Number is able to be created using the `ComplexNum` struct, and is constructed as follows:
