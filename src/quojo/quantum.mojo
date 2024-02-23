@@ -181,22 +181,22 @@ struct QuantumGates:
     
     # Three Qubit Gates
 
-    fn CCNOT(borrowed self, other: Qudit) raises -> Qudit:
-        if other.width != 3:
-            raise "Invalid Qudit Size"
-        var state_vector = (other[0].qubit * other[1].qubit) * other[2].qubit
-        #return Qudit(state_vector @ self.mCCNOT)
-        var result = Qubit()
-        result[1] = state_vector[0,6]
-        result[0] = state_vector[0,7]
-        var output = Qudit(3)
-        output[0] = other[0]
-        output[1] = other[1]
-        output[2] = result
-        return output
+    # fn CCNOT(borrowed self, other: Qudit) raises -> Qudit:
+    #     if other.width != 3:
+    #         raise "Invalid Qudit Size"
+    #     var state_vector = (other[0].qubit * other[1].qubit) * other[2].qubit
+    #     #return Qudit(state_vector @ self.mCCNOT)
+    #     var result = Qubit()
+    #     result[1] = state_vector[0,6]
+    #     result[0] = state_vector[0,7]
+    #     var output = Qudit(3)
+    #     output[0] = other[0]
+    #     output[1] = other[1]
+    #     output[2] = result
+    #     return output
     
-    fn CCX(borrowed self, other: Qudit) raises -> Qudit:
-        return self.CCNOT(other)
+    # fn CCX(borrowed self, other: Qudit) raises -> Qudit:
+    #     return self.CCNOT(other)
 
 struct Qubit:
     var qubit: comp.ComplexMatrix
