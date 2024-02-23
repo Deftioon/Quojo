@@ -2,6 +2,24 @@ import complexNum as comp
 import random
 from math import sin, cos
 from collections.vector import DynamicVector
+from collections.dict import Dict, KeyElement
+
+@value
+struct StringKey(KeyElement):
+    var s: String
+
+    fn __init__(inout self, owned s: String):
+        self.s = s ^
+
+    fn __init__(inout self, s: StringLiteral):
+        self.s = String(s)
+
+    fn __hash__(self) -> Int:
+        let ptr = self.s._buffer.data.value
+        return hash(DTypePointer[DType.int8](ptr), len(self.s))
+
+    fn __eq__(self, other: Self) -> Bool:
+        return self.s == other.s
 
 struct QuantumGates:
 
@@ -164,6 +182,8 @@ struct QuantumGates:
     # Three Qubit Gates
 
     fn CCNOT(borrowed self, other: Qudit) raises -> Qudit:
+        if other.width != 3:
+            raise "Invalid Qudit Size"
         var state_vector = (other[0].qubit * other[1].qubit) * other[2].qubit
         #return Qudit(state_vector @ self.mCCNOT)
         var result = Qubit()
@@ -223,7 +243,7 @@ struct Qubit:
         self.qubit.print()
         return self
         
-struct Qudit:
+struct Qudit(CollectionElement):
     var width: Int
     var qudit: comp.ComplexMatrix
 
@@ -238,6 +258,13 @@ struct Qudit:
     fn __copyinit__(inout self, existing: Self):
         self.width = existing.width
         self.qudit = existing.qudit
+    
+    fn __moveinit__(inout self, owned existing: Self):
+        self.width = existing.width
+        self.qudit = existing.qudit
+    
+    fn __del__(owned self):
+        self.qudit.data.ArrPointer.free()
 
     fn __getitem__(borrowed self, index: Int) raises -> Qubit:
         if index < 0 or index >= self.width:
@@ -256,7 +283,7 @@ struct Qudit:
     fn print(borrowed self) raises:
         self.qudit.print()
 
-struct QuantumWire:
+struct QuantumWire(CollectionElement):
     var g: QuantumGates
     var wire: DynamicVector[String]
     var valid_states: String
@@ -277,6 +304,11 @@ struct QuantumWire:
             self.wire.push_back(split_state[i])
         
     fn __copyinit__(inout self, existing: Self):
+        self.g = existing.g
+        self.wire = existing.wire
+        self.valid_states = existing.valid_states
+    
+    fn __moveinit__(inout self, owned existing: Self):
         self.g = existing.g
         self.wire = existing.wire
         self.valid_states = existing.valid_states
@@ -332,9 +364,45 @@ struct QuantumWire:
             temp = result
         return result
 
+struct QuantumCircuit:
+    var g: QuantumGates
+    var circuit: DynamicVector[QuantumWire]
+    var nameDict: Dict[StringKey, Int]
+    var valid_states: String
+    var qudits: DynamicVector[Qudit]
+
+    fn __init__(inout self) raises:
+        self.g = QuantumGates()
+        self.circuit = DynamicVector[QuantumWire]()
+        self.nameDict = Dict[StringKey, Int]()
+        self.valid_states = "H X Y Z M I S C SWAP CCNOT"
+        self.qudits = DynamicVector[Qudit]()
+    
+    fn help(borrowed self) raises:
+        print("-------QUANTUM CIRCUIT HELP--------")
+        print('Valid States: "I H X Y Z S M C SWAP CCNOT"')
+        print("I: Identity Gate")
+        print("H: Hadamard Gate")
+        print("X: Pauli-X Gate")
+        print("Y: Pauli-Y Gate")
+        print("Z: Pauli-Z Gate")
+        print("S: Phase Gate")
+        print("M: Measure Qubit")
+        print("C: CNOT Gate")
+        print("SWAP: SWAP Gate")
+        print("CCNOT: Toffoli Gate")
+        print("--------------------------------")
+    
+    fn add(inout self, alias: String, wire: QuantumWire) raises:
+        self.circuit.push_back(wire)
+        self.nameDict[StringKey(wire)] = len(self.circuit) - 1
+
 
 fn main() raises:
     var wire = QuantumWire("I S")
     var qubit = Qubit("1")
     var res = wire.parse(qubit)
     res.print()
+
+    var circuit = QuantumCircuit()
+    circuit.help()
