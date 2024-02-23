@@ -1,4 +1,5 @@
 from memory.unsafe import Pointer
+from complex import ComplexSIMD
 
 struct ComplexNum:
     var re: Float64
@@ -188,9 +189,3 @@ struct ComplexMatrix:
             for j in range(self.cols):
                 print_no_newline(i, j, " ")
                 self.data[i * self.cols + j].print()
-
-fn main() raises:
-    var matrix1 = ComplexMatrix(1,2)
-    var matrix2 = ComplexMatrix(1,3)
-    var matrix3 = matrix2 * matrix1
-    matrix3.print()
