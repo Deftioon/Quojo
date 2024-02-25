@@ -146,57 +146,87 @@ struct QuantumGates:
     fn I(borrowed self, other: Qubit) raises -> Qubit:
         return self.Identity(other)
     
+    # One Qudit Gates
+    fn Hadamard(borrowed self, state: Qudit) raises -> Qudit:
+        if state.width != 1:
+            raise "Invalid Qudit Width"
+        return Qudit(state.qudit @ self.HadamardMatrix)
+    
+    fn PauliX(borrowed self, state: Qudit) raises -> Qudit:
+        if state.width != 1:
+            raise "Invalid Qudit Width"
+        return Qudit(state.qudit @ self.mX)
+    
+    fn PauliY(borrowed self, state: Qudit) raises -> Qudit:
+        if state.width != 1:
+            raise "Invalid Qudit Width"
+        return Qudit(state.qudit @ self.mY)
+    
+    fn PauliZ(borrowed self, state: Qudit) raises -> Qudit:
+        if state.width != 1:
+            raise "Invalid Qudit Width"
+        return Qudit(state.qudit @ self.mZ)
+    
+    fn PhaseShift(borrowed self, state: Qudit) raises -> Qudit:
+        if state.width != 1:
+            raise "Invalid Qudit Width"
+        var mP = comp.ComplexMatrix(2, 2)
+        mP[0, 0] = comp.ComplexNum(1, 0)
+        mP[1, 1] = comp.ComplexNum(0, 1)
+        return Qudit(state.qudit @ mP)
+    
+    fn Identity(borrowed self, state: Qudit) raises -> Qudit:
+        if state.width != 1:
+            raise "Invalid Qudit Width"
+        return Qudit(state.qudit @ self.IdentityMatrix)
+    
+    fn H(borrowed self, state: Qudit) raises -> Qudit:
+        return self.Hadamard(state)
+    
+    fn X(borrowed self, state: Qudit) raises -> Qudit:
+        return self.PauliX(state)
+    
+    fn Y(borrowed self, state: Qudit) raises -> Qudit:
+        return self.PauliY(state)
+    
+    fn Z(borrowed self, state: Qudit) raises -> Qudit:
+        return self.PauliZ(state)
+    
+    fn P(borrowed self, state: Qudit, phi: Float64) raises -> Qudit:
+        return self.PhaseShift(state)
+    
+    fn S(borrowed self, state: Qudit) raises -> Qudit:
+        return self.PhaseShift(state)
+    
+    fn T(borrowed self, state: Qudit) raises -> Qudit:
+        if state.width != 1:
+            raise "Invalid Qudit Width"
+        var mP = comp.ComplexMatrix(2, 2)
+        mP[0, 0] = comp.ComplexNum(1, 0)
+        mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](0.25 *3.141592653589793), sin[DType.float64, 1](0.25 *3.141592653589793))
+        return Qudit(state.qudit @ mP)
+    
+    fn I(borrowed self, state: Qudit) raises -> Qudit:
+        return self.Identity(state)
+    
     # Two Qubit Gates
+    fn CNOT(borrowed self, state: Qudit) raises -> Qudit:
+        return Qudit(state.qudit @ self.mCNOT)
     
-    fn CNOT(borrowed self, other: Qudit) raises -> Qudit:
-        if other.width != 2:
-            raise "Invalid Qudit Size"
-        return Qudit(other.qudit @ self.mCNOT)
-    
-    fn CX(borrowed self, other: Qudit) raises -> Qudit:
-        return self.CNOT(other)
-
-    fn CU(borrowed self, other: Qudit, gate: comp.ComplexMatrix) raises -> Qudit:
-        var mCU = comp.ComplexMatrix(4, 4)
-        mCU[0, 0] = comp.ComplexNum(1, 0)
-        mCU[1, 1] = comp.ComplexNum(1, 0)
-        mCU[2, 2] = gate[0, 0]
-        mCU[2, 3] = gate[0, 1]
-        mCU[3, 2] = gate[1, 0]
-        mCU[3, 3] = gate[1, 1]
-        return Qudit(other.qudit @ mCU)
-
-    fn mCU(borrowed self, gate: comp.ComplexMatrix) raises -> comp.ComplexMatrix:
-        var mCU = comp.ComplexMatrix(4, 4)
-        mCU[0, 0] = comp.ComplexNum(1, 0)
-        mCU[1, 1] = comp.ComplexNum(1, 0)
-        mCU[2, 2] = gate[0, 0]
-        mCU[2, 3] = gate[0, 1]
-        mCU[3, 2] = gate[1, 0]
-        mCU[3, 3] = gate[1, 1]
-        return mCU
-
-    fn SWAP(borrowed self, other: Qudit) raises -> Qudit:
-        return Qudit(other.qudit @ self.mSWAP)
+    fn SWAP(borrowed self, state: Qudit) raises -> Qudit:
+        return Qudit(state.qudit @ self.mSWAP)
     
     # Three Qubit Gates
-
-    # fn CCNOT(borrowed self, other: Qudit) raises -> Qudit:
-    #     if other.width != 3:
-    #         raise "Invalid Qudit Size"
-    #     var state_vector = (other[0].qubit * other[1].qubit) * other[2].qubit
-    #     #return Qudit(state_vector @ self.mCCNOT)
-    #     var result = Qubit()
-    #     result[1] = state_vector[0,6]
-    #     result[0] = state_vector[0,7]
-    #     var output = Qudit(3)
-    #     output[0] = other[0]
-    #     output[1] = other[1]
-    #     output[2] = result
-    #     return output
+    fn CCNOT(borrowed self, state: Qudit) raises -> Qudit:
+        return Qudit(state.qudit @ self.mCCNOT)
     
-    # fn CCX(borrowed self, other: Qudit) raises -> Qudit:
-    #     return self.CCNOT(other)
+    # Parallel Gates
+    fn ParallelHadamard(borrowed self, states: Qudit) raises -> Qudit:
+        var pH = self.HadamardMatrix
+        for i in range(states.width - 1):
+            pH = pH * self.HadamardMatrix
+        return Qudit(states.qudit @ pH)
+
 
 struct Qubit:
     var qubit: comp.ComplexMatrix
@@ -243,14 +273,59 @@ struct Qubit:
         self.qubit.print()
         return self
         
-struct Qudit()
+struct Qudit:
+    var qudit: comp.ComplexMatrix
+    var width: Int
 
+    fn __init__(inout self, state: String) raises:
+        self.width = len(state)
+        self.qudit = comp.ComplexMatrix(1, 2 ** self.width)
+        var binary_num = atol(state)
+        var decimal_num = 0
+        var power = 0
+
+        while binary_num > 0:
+            decimal_num += 2 ** power * (binary_num % 10)
+            binary_num = binary_num // 10
+            power += 1
+        
+        self.qudit[0, decimal_num] = comp.ComplexNum(1, 0)
+    
+    fn __init__(inout self, state: comp.ComplexMatrix) raises:
+        self.width = state.cols
+        self.qudit = state
+    
+    fn __copyinit__(inout self, existing: Self):
+        self.width = existing.width
+        self.qudit = existing.qudit
+    
+    fn __getitem__(borrowed self, index: Int) raises -> comp.ComplexNum:
+        return self.qudit[0, index]
+    
+    fn __setitem__(inout self, index: Int, value: comp.ComplexNum) raises:
+        self.qudit[0, index] = value
+    
+    fn print(borrowed self) raises:
+        self.qudit.print()
+    
+    fn measure(inout self) raises -> None:
+        random.seed()
+        var randNum = random.random_float64()
+        var sum: Float64 = 0.0
+        var index = 0
+        
+        for i in range(self.width):
+            sum += (self.qudit[0, i] * self.qudit[0, i]).magnitude()
+            if randNum < sum:
+                index = i
+                break
+        
+        self.qudit = comp.ComplexMatrix(1, self.width)
+        self.qudit[0, index] = comp.ComplexNum(1, 0)
+        self.print()
 
 fn main() raises:
-    var wire = QuantumWire("I S")
-    var qubit = Qubit("1")
-    var res = wire.parse(qubit)
-    res.print()
-
-    var circuit = QuantumCircuit()
-    circuit.help()
+    var g = QuantumGates()
+    var q = Qudit("111")
+    var h = g.ParallelHadamard(q)
+    h.measure()
