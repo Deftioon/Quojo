@@ -27,6 +27,8 @@ struct QuantumGates:
     var mX: comp.ComplexMatrix
     var mY: comp.ComplexMatrix
     var mZ: comp.ComplexMatrix
+    var mP: comp.ComplexMatrix
+    var mT: comp.ComplexMatrix
     var mCNOT: comp.ComplexMatrix
     var mSWAP: comp.ComplexMatrix
     var mCCNOT: comp.ComplexMatrix
@@ -47,6 +49,15 @@ struct QuantumGates:
         self.HadamardMatrix[1, 1] = comp.ComplexNum(-1, 0)
 
         self.HadamardMatrix = self.HadamardMatrix * (1 / (2 ** 0.5))
+
+        # Initialise Phase Shift Gate
+        self.mP = comp.ComplexMatrix(2, 2)
+        self.mP[0, 0] = comp.ComplexNum(1, 0)
+        self.mP[1, 1] = comp.ComplexNum(0, 1)
+
+        self.mT = comp.ComplexMatrix(2, 2)
+        self.mT[0, 0] = comp.ComplexNum(1, 0)
+        self.mT[1, 1] = comp.ComplexNum(cos[DType.float64, 1](0.25 * 3.14159265358979323846), sin[DType.float64, 1](0.25 * 3.14159265358979323846))
 
         # Initialise Pauli- X,Y,Z Gates
         self.mX = comp.ComplexMatrix(2, 2)
@@ -91,6 +102,8 @@ struct QuantumGates:
         self.mX = existing.mX
         self.mY = existing.mY
         self.mZ = existing.mZ
+        self.mP = existing.mP
+        self.mT = existing.mT
         self.mCNOT = existing.mCNOT
         self.mSWAP = existing.mSWAP
         self.mCCNOT = existing.mCCNOT
@@ -110,17 +123,14 @@ struct QuantumGates:
     fn PauliZ(borrowed self, other: Qubit) raises -> Qubit:
         return Qubit(other.qubit @ self.mZ)
     
+    fn PhaseShift(borrowed self, other: Qubit) raises -> Qubit:
+        return Qubit(other.qubit @ self.mP)
+    
     fn PhaseShift(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
         var mP = comp.ComplexMatrix(2, 2)
         mP[0, 0] = comp.ComplexNum(1, 0)
         mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](phi), sin[DType.float64, 1](phi))
         return Qubit(other.qubit @ mP)
-    
-    fn PhaseMatrix(borrowed self, phi: Float64) raises -> comp.ComplexMatrix:
-        var mP = comp.ComplexMatrix(2, 2)
-        mP[0, 0] = comp.ComplexNum(1, 0)
-        mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](phi), sin[DType.float64, 1](phi))
-        return mP
     
     fn Identity(borrowed self, other: Qubit) raises -> Qubit:
         return Qubit(other.qubit @ self.IdentityMatrix)
@@ -137,95 +147,115 @@ struct QuantumGates:
     fn Z(borrowed self, other: Qubit) raises -> Qubit:
         return self.PauliZ(other)
 
-    fn P(borrowed self, other: Qubit, phi: Float64) raises -> Qubit:
-        return self.PhaseShift(other, phi)
+    fn P(borrowed self, other: Qubit) raises -> Qubit:
+        return self.PhaseShift(other)
     
     fn S(borrowed self, other: Qubit) raises -> Qubit:
-        return self.PhaseShift(other, 0.5 * 3.14159265358979323846)
+        return self.PhaseShift(other)
+    
+    fn T(borrowed self, other: Qubit) raises -> Qubit:
+        return Qubit(other.qubit @ self.mT)
     
     fn I(borrowed self, other: Qubit) raises -> Qubit:
         return self.Identity(other)
+
+    # Qudit Gates
     
-    # One Qudit Gates
-    fn Hadamard(borrowed self, state: Qudit) raises -> Qudit:
-        if state.width != 1:
-            raise "Invalid Qudit Width"
-        return Qudit(state.qudit @ self.HadamardMatrix)
-    
-    fn PauliX(borrowed self, state: Qudit) raises -> Qudit:
-        if state.width != 1:
-            raise "Invalid Qudit Width"
-        return Qudit(state.qudit @ self.mX)
-    
-    fn PauliY(borrowed self, state: Qudit) raises -> Qudit:
-        if state.width != 1:
-            raise "Invalid Qudit Width"
-        return Qudit(state.qudit @ self.mY)
-    
-    fn PauliZ(borrowed self, state: Qudit) raises -> Qudit:
-        if state.width != 1:
-            raise "Invalid Qudit Width"
-        return Qudit(state.qudit @ self.mZ)
-    
-    fn PhaseShift(borrowed self, state: Qudit) raises -> Qudit:
-        if state.width != 1:
-            raise "Invalid Qudit Width"
-        var mP = comp.ComplexMatrix(2, 2)
-        mP[0, 0] = comp.ComplexNum(1, 0)
-        mP[1, 1] = comp.ComplexNum(0, 1)
-        return Qudit(state.qudit @ mP)
-    
-    fn Identity(borrowed self, state: Qudit) raises -> Qudit:
-        if state.width != 1:
-            raise "Invalid Qudit Width"
-        return Qudit(state.qudit @ self.IdentityMatrix)
-    
-    fn H(borrowed self, state: Qudit) raises -> Qudit:
-        return self.Hadamard(state)
-    
-    fn X(borrowed self, state: Qudit) raises -> Qudit:
-        return self.PauliX(state)
-    
-    fn Y(borrowed self, state: Qudit) raises -> Qudit:
-        return self.PauliY(state)
-    
-    fn Z(borrowed self, state: Qudit) raises -> Qudit:
-        return self.PauliZ(state)
-    
-    fn P(borrowed self, state: Qudit, phi: Float64) raises -> Qudit:
-        return self.PhaseShift(state)
-    
-    fn S(borrowed self, state: Qudit) raises -> Qudit:
-        return self.PhaseShift(state)
-    
-    fn T(borrowed self, state: Qudit) raises -> Qudit:
-        if state.width != 1:
-            raise "Invalid Qudit Width"
-        var mP = comp.ComplexMatrix(2, 2)
-        mP[0, 0] = comp.ComplexNum(1, 0)
-        mP[1, 1] = comp.ComplexNum(cos[DType.float64, 1](0.25 *3.141592653589793), sin[DType.float64, 1](0.25 *3.141592653589793))
-        return Qudit(state.qudit @ mP)
-    
-    fn I(borrowed self, state: Qudit) raises -> Qudit:
-        return self.Identity(state)
-    
-    # Two Qubit Gates
-    fn CNOT(borrowed self, state: Qudit) raises -> Qudit:
-        return Qudit(state.qudit @ self.mCNOT)
-    
-    fn SWAP(borrowed self, state: Qudit) raises -> Qudit:
-        return Qudit(state.qudit @ self.mSWAP)
-    
-    # Three Qubit Gates
-    fn CCNOT(borrowed self, state: Qudit) raises -> Qudit:
-        return Qudit(state.qudit @ self.mCCNOT)
-    
-    # Parallel Gates
     fn ParallelHadamard(borrowed self, states: Qudit) raises -> Qudit:
         var pH = self.HadamardMatrix
         for i in range(states.width - 1):
             pH = pH * self.HadamardMatrix
         return Qudit(states.qudit @ pH)
+    
+    fn ParallelPauliX(borrowed self, states: Qudit) raises -> Qudit:
+        var pX = self.mX
+        for i in range(states.width - 1):
+            pX = pX * self.mX
+        return Qudit(states.qudit @ pX)
+    
+    fn ParallelPauliY(borrowed self, states: Qudit) raises -> Qudit:
+        var pY = self.mY
+        for i in range(states.width - 1):
+            pY = pY * self.mY
+        return Qudit(states.qudit @ pY)
+    
+    fn ParallelPauliZ(borrowed self, states: Qudit) raises -> Qudit:
+        var pZ = self.mZ
+        for i in range(states.width - 1):
+            pZ = pZ * self.mZ
+        return Qudit(states.qudit @ pZ)
+    
+    fn ParallelPhaseShift(borrowed self, states: Qudit) raises -> Qudit:
+        var mP = self.mP
+        for i in range(states.width - 1):
+            mP = mP * self.mP
+        return Qudit(states.qudit @ mP)
+    
+    fn ParallelTGate(borrowed self, states: Qudit) raises -> Qudit:
+        var mP = self.mT
+        for i in range(states.width - 1):
+            mP = mP * self.mT
+        return Qudit(states.qudit @ mP)
+    
+    fn ParallelIdentity(borrowed self, states: Qudit) raises -> Qudit:
+        var mI = self.IdentityMatrix
+        for i in range(states.width - 1):
+            mI = mI * self.IdentityMatrix
+        return Qudit(states.qudit @ mI)
+    
+    fn ParallelCNOT(borrowed self, states: Qudit) raises -> Qudit:
+        var pCNOT = self.mCNOT
+        for i in range((states.width - 2)/2):
+            pCNOT = pCNOT * self.mCNOT
+        pCNOT.print()
+        return Qudit(states.qudit @ pCNOT)
+    
+    fn ParallelSWAP(borrowed self, states: Qudit) raises -> Qudit:
+        var pSWAP = self.mSWAP
+        for i in range((states.width - 2)/2):
+            pSWAP = pSWAP * self.mSWAP
+        return Qudit(states.qudit @ pSWAP)
+    
+    # Currently BROKEN
+    fn ParallelCCNOT(borrowed self, states: Qudit) raises -> Qudit:
+        var pCCNOT = self.mCCNOT
+        for i in range((states.width - 3)/3):
+            pCCNOT = pCCNOT * self.mCCNOT
+        return Qudit(states.qudit @ pCCNOT)
+    
+    
+    fn H(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelHadamard(states)
+    
+    fn X(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelPauliX(states)
+
+    fn Y(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelPauliY(states)
+
+    fn Z(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelPauliZ(states)
+    
+    fn P(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelPhaseShift(states)
+    
+    fn S(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelPhaseShift(states)
+    
+    fn T(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelTGate(states)
+    
+    fn I(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelIdentity(states)
+
+    fn CNOT(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelCNOT(states)
+
+    fn SWAP(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelSWAP(states)
+
+    fn CCNOT(borrowed self, states: Qudit) raises -> Qudit:
+        return self.ParallelCCNOT(states)
 
 
 struct Qubit:
@@ -326,6 +356,6 @@ struct Qudit:
 
 fn main() raises:
     var g = QuantumGates()
-    var q = Qudit("111")
-    var h = g.ParallelHadamard(q)
-    h.measure()
+    var q = Qudit("000")
+    var h = g.CCNOT(q)
+    h.print()
