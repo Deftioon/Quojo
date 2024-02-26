@@ -2,8 +2,8 @@
 A Quantum Computing Simulation written in Mojo
 
 ## TODO:
-- **Fix Qubits of more than 1 (they're completely wrong at the moment)**
 - Implement Uncomputing
+- Implement Quantum RAM
 - Implement Quantum Circuits
 - Add Sample Programs (Quantum Search, Quantum Teleportation)
 - Optimize code and make it more readable
