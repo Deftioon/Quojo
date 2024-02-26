@@ -207,13 +207,12 @@ struct QuantumGates:
         var pCNOT = self.mCNOT
         for i in range((states.width - 2)/2):
             pCNOT = pCNOT * self.mCNOT
-        pCNOT.print()
         return Qudit(states.qudit @ pCNOT)
     
     fn ParallelSWAP(borrowed self, states: Qudit) raises -> Qudit:
         var pSWAP = self.mSWAP
         for i in range((states.width - 2)/2):
-            pSWAP = pSWAP * self.mSWAP
+            pSWAP = pSWAP * pSWAP
         return Qudit(states.qudit @ pSWAP)
     
     # Currently BROKEN
@@ -356,6 +355,6 @@ struct Qudit:
 
 fn main() raises:
     var g = QuantumGates()
-    var q = Qudit("000")
-    var h = g.CCNOT(q)
+    var q = Qudit("11")
+    var h = g.Z(q)
     h.print()
