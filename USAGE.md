@@ -41,37 +41,11 @@ myQubit.measure()
 ```
 
 ### Creating a Qudit (Quantum Register)
-**Qudits are implemented completely wrong and are going to be fixed soon $^{TM}$**
-A Qudit is analogically the same as a classical register; it stores Qubits. 
-
-A Qudit can be initialized with the `Qudit` struct.
+Qudits are basically wider Qubits. You can define a Qudit as follows:
 ```py
-# Qudit(width: Int)
-var myQudit = Qudit(3) # Creates a Qudit with a width of 3 -> It can store 3 Qubits
+var qudit = Qudit("1000")
 ```
-
-Qubits can be stored and manipulated with the `__getitem__` and `__setitem__` methods.
-```py
-var p = Qubit("0")
-var q = Qubit("1")
-myQudit[0] = p
-myQudit[1] = q
-myQudit[2].print() # This works because every element of a Qudit is a Qubit
-# Prints
-# 0.0 0.0
-# 0.0 0.0
-```
-
-Qudits can be printed with `print()`. Print format is yet to be formatted.
-```py
-myQudit.print()
-# 1.0 0.0
-# 0.0 0.0
-# 0.0 0.0
-# 1.0 0.0
-# 0.0 0.0
-# 0.0 0.0
-```
+Where the string in the `Qudit()` represents the basis state the Qudit will be set to.
 
 ### Quantum Gates
 
