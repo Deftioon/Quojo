@@ -6,7 +6,7 @@ This project aims to:
 - Provide an easy to use, comprehensible, and simple interface to simulate operations on a Quantum System
   - This will be done with a simple `QuantumWire("H X Y H")` Quantum Wiring Syntax, `Circuit.Connect(Wire, Wire)` Quantum Circuitry Syntax to give full freedom on the customizability of Quantum Circuits.
 - Fast, Parallelized Compute on Quantum Operations.
-  - This will make use of Mojo's fast parallelization, tiling, and autotune to optimize Matrix operations. 
+  - This will make use of Mojo's fast parallelization, tiling, and autotune to optimize Matrix operations. Eventually when enabled to run on GPU, we will utilize GPU to perform matrix operations for more speed.
 
 ## TODO:
 - Implement Uncomputing
