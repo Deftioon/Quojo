@@ -214,8 +214,7 @@ struct QuantumGates:
         for i in range((states.width - 2)/2):
             pSWAP = pSWAP * pSWAP
         return Qudit(states.qudit @ pSWAP)
-    
-    # Currently BROKEN
+        
     fn ParallelCCNOT(borrowed self, states: Qudit) raises -> Qudit:
         var pCCNOT = self.mCCNOT
         for i in range((states.width - 3)/3):
@@ -255,7 +254,6 @@ struct QuantumGates:
 
     fn CCNOT(borrowed self, states: Qudit) raises -> Qudit:
         return self.ParallelCCNOT(states)
-
 
 struct Qubit:
     var qubit: comp.ComplexMatrix
@@ -353,8 +351,41 @@ struct Qudit:
         self.qudit[0, index] = comp.ComplexNum(1, 0)
         self.print()
 
+struct QuantumRAM:
+    var top: Int
+    var capacity: Int
+    var addresses: DynamicVector[Int]
+    var data: comp.ComplexArray
+
+    fn __init__(inout self, capacity: Int) raises:
+        self.top = 0
+        self.capacity = capacity
+        self.addresses = DynamicVector[Int](capacity)
+        self.data = comp.ComplexArray(capacity)
+    
+    fn store(inout self, address: Int, value: Qubit) raises:
+        if self.top + 2 >= self.capacity - 1:
+            raise "Quantum RAM is full"
+        self.addresses[self.top] = address
+        self.data[self.top] = value[0]
+        self.data[self.top + 1] = value[1]
+        self.top += 2
+    
+    fn read(borrowed self, address: Int) raises -> Qudit:
+        for i in range(self.top):
+            if self.addresses[i] == address:
+                var size = self.addresses[i + 1] - self.addresses[i]
+                var result = comp.ComplexMatrix(1, size)
+                result[0, 0] = self.data[i]
+                result[0, 1] = self.data[i + 1]
+                return Qudit(result)
+        raise "Address not found in Quantum RAM"
+
 fn main() raises:
-    var g = QuantumGates()
-    var q = Qudit("11")
-    var h = g.Z(q)
-    h.print()
+    var q1 = Qubit("0")
+    var q2 = Qubit("1")
+    var r = QuantumRAM(10)
+    r.store(0, q1)
+    r.store(1, q2)
+    var q = r.read(1)
+    q.print()
