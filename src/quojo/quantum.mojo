@@ -351,34 +351,39 @@ struct Qudit:
         self.qudit[0, index] = comp.ComplexNum(1, 0)
         self.print()
 
-struct QuantumRAM:
-    var top: Int
-    var capacity: Int
-    var addresses: DynamicVector[Int]
-    var data: comp.ComplexArray
+# struct QuantumRAM:
+#     var top: Int
+#     var capacity: Int
+#     var addresses: DynamicVector[Int]
+#     var data: comp.ComplexArray
 
-    fn __init__(inout self, capacity: Int) raises:
-        self.top = 0
-        self.capacity = capacity
-        self.addresses = DynamicVector[Int]()
-        self.data = comp.ComplexArray(capacity * 2)
+#     fn __init__(inout self, capacity: Int) raises:
+#         self.top = 0
+#         self.capacity = capacity
+#         self.addresses = DynamicVector[Int]()
+#         self.data = comp.ComplexArray(capacity * 2)
     
-    fn store(inout self, address: Int, qubit: Qubit) raises:
-        self.addresses.push_back(address)
-        self.data[self.top] = qubit.qubit[0, 0]
-        self.data[self.top + 1] = qubit.qubit[0, 1]
-        self.top += 2
+#     fn store(inout self, address: Int, qubit: Qubit) raises:
+#         self.addresses.push_back(address)
+#         self.data[self.top] = qubit.qubit[0, 0]
+#         self.data[self.top + 1] = qubit.qubit[0, 1]
+#         self.top += 2
     
-    fn dump(inout self) raises:
-        self.data.print()
+#     fn store(inout self, address: Int, qudit: Qudit) raises:
+#         self.addresses.push_back(address)
+#         for i in range(qudit.width):
+#             self.data[self.top + i] = qudit.qudit[0, i]
+#         self.top += qudit.width
+    
+#     fn dump(inout self) raises:
+#         self.data.print()
 
-fn main() raises:
-    var q1 = Qubit("0")
-    var q2 = Qubit("1")
-    var q3 = Qubit("0")
-    var r = QuantumRAM(3)
-    r.store(0, q1)
-    r.store(1, q2)
-    r.store(2, q3)
-    r.dump()
-    r.read(0).print()
+# fn main() raises:
+#     var q1 = Qudit("00")
+#     var q2 = Qudit("10")
+#     var q3 = Qudit("10")
+#     var r = QuantumRAM(12)
+#     r.store(0, q1)
+#     r.store(1, q2)
+#     r.store(2, q3)
+#     r.dump()
