@@ -360,32 +360,25 @@ struct QuantumRAM:
     fn __init__(inout self, capacity: Int) raises:
         self.top = 0
         self.capacity = capacity
-        self.addresses = DynamicVector[Int](capacity)
-        self.data = comp.ComplexArray(capacity)
+        self.addresses = DynamicVector[Int]()
+        self.data = comp.ComplexArray(capacity * 2)
     
-    fn store(inout self, address: Int, value: Qubit) raises:
-        if self.top + 2 >= self.capacity - 1:
-            raise "Quantum RAM is full"
-        self.addresses[self.top] = address
-        self.data[self.top] = value[0]
-        self.data[self.top + 1] = value[1]
+    fn store(inout self, address: Int, qubit: Qubit) raises:
+        self.addresses.push_back(address)
+        self.data[self.top] = qubit.qubit[0, 0]
+        self.data[self.top + 1] = qubit.qubit[0, 1]
         self.top += 2
     
-    fn read(borrowed self, address: Int) raises -> Qudit:
-        for i in range(self.top):
-            if self.addresses[i] == address:
-                var size = self.addresses[i + 1] - self.addresses[i]
-                var result = comp.ComplexMatrix(1, size)
-                result[0, 0] = self.data[i]
-                result[0, 1] = self.data[i + 1]
-                return Qudit(result)
-        raise "Address not found in Quantum RAM"
+    fn dump(inout self) raises:
+        self.data.print()
 
 fn main() raises:
     var q1 = Qubit("0")
     var q2 = Qubit("1")
-    var r = QuantumRAM(10)
+    var q3 = Qubit("0")
+    var r = QuantumRAM(3)
     r.store(0, q1)
     r.store(1, q2)
-    var q = r.read(1)
-    q.print()
+    r.store(2, q3)
+    r.dump()
+    r.read(0).print()
