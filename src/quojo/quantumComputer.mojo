@@ -30,7 +30,7 @@ struct QMC: #Quantum Memory Cells
         for i in range(start, start+size):
             self.data[i] = comp.ComplexNum(0,0)
     
-    fn write(inout self, contents: Q.Qubit, mode: String) raises:
+    fn write(inout self, contents: Q.Qubit, mode: String, address: Int = 0) raises:
         if mode == "a":
             var size = 2
 
@@ -39,8 +39,17 @@ struct QMC: #Quantum Memory Cells
             
             self.top += size
             self.addresses.push_back(self.top)
+        
+        if mode == "o":
+            var size = 2
+            var start = self.addresses[address]
+            self.delete(address)
+
+            for i in range(start, start + size):
+                self.data[i] = contents.qubit[0, i - start]
+
     
-    fn write(inout self, contents: Q.Qudit, mode: String) raises:
+    fn write(inout self, contents: Q.Qudit, mode: String, address: Int = 0) raises:
         if mode == "a":
             var size = contents.qudit.cols
 
@@ -49,3 +58,14 @@ struct QMC: #Quantum Memory Cells
             
             self.top += size
             self.addresses.push_back(self.top)
+        
+        if mode == "o":
+            var addrSize = self.addresses[address + 1] - self.addresses[address]
+            var size = contents.qudit.cols
+            if size > addrSize:
+                raise("Given contents too big, cannot overwrite")
+            var start = self.addresses[address]
+            self.delete(address)
+
+            for i in range(start, start + size):
+                self.data[i] = contents.qudit[0, i - start]

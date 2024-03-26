@@ -137,7 +137,7 @@ struct QuantumGates:
 
     fn H(borrowed self, other: Qubit) raises -> Qubit:
         return self.Hadamard(other)
-    
+
     fn X(borrowed self, other: Qubit) raises -> Qubit:
         return self.PauliX(other)
     
