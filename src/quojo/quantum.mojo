@@ -322,6 +322,10 @@ struct Qudit:
         self.width = state.cols
         self.qudit = state
     
+    fn __init__(inout self, size: Int) raises:
+        self.width = size
+        self.qudit = comp.ComplexMatrix(1, 2 ** size)
+    
     fn __copyinit__(inout self, existing: Self):
         self.width = existing.width
         self.qudit = existing.qudit

@@ -28,6 +28,9 @@ struct ComplexNum:
     fn __invert__(borrowed self) -> ComplexNum:
         return ComplexNum(self.re, -self.im)
     
+    fn __ne__(borrowed self, other: ComplexNum) -> Bool:
+        return self.re != other.re or self.im != other.im
+    
     fn __getitem__(borrowed self, i: Int) raises -> Float64 :
         if i == 0:
             return self.re
