@@ -190,5 +190,5 @@ struct ComplexMatrix:
     fn print(borrowed self) raises -> None:
         for i in range(self.rows):
             for j in range(self.cols):
-                print_no_newline(i, j, " ")
+                print(i, j, end = " ")
                 self.data[i * self.cols + j].print()
