@@ -1,5 +1,5 @@
 # Quojo
-A Quantum Computing Simulation written in Mojo. This really only serves as one of my passion projects, but I would like it to expand into a larger platform for Quantum Development. Moved to a Python adaptation, [PyQ](https://github.com/Deftioon/PyQ)
+A Quantum Computing Simulation written in Mojo. This really only serves as one of my passion projects, but I would like it to expand into a larger platform for Quantum Development. Moved to a Python adaptation, [PyQ](https://github.com/Deftioon/qcircpy)
 
 ## Goals
 This project aims to:
