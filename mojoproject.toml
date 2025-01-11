@@ -1,0 +1,12 @@
+[project]
+authors = ["Jake Lu <jylu1205@outlook.com>"]
+channels = ["conda-forge", "https://conda.modular.com/max"]
+description = "Quantum Simulation Framework for Mojo"
+name = "Quojo"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+max = ">=24.6.0,<25"

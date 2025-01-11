@@ -1,3 +1,9 @@
+# pixi environments
+.pixi
+*.egg-info
+# magic environments
+.magic
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
