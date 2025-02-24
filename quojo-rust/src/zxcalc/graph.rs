@@ -4,6 +4,7 @@ use std::fmt;
 pub enum NodeType {
     Z,
     X,
+    H,
 }
 
 #[derive(Debug)]
@@ -24,6 +25,14 @@ impl Node {
             outgoing_edges: Vec::new(),
             incoming_edges: Vec::new(),
         }
+    }
+
+    fn get_phase(&self) -> f64 {
+        self.phase
+    }
+
+    fn set_phase(&mut self, phase: f64) {
+        self.phase = phase;
     }
 }
 
@@ -80,7 +89,66 @@ impl Graph {
         edge_id
     }
 
-    pub fn fuse_nodes(&mut self, node_a: usize, node_b: usize) {}
+    pub fn fuse_nodes(&mut self, node_a: usize, node_b: usize) {
+        let (a_index, b_index) = if node_a < node_b {
+            (node_a, node_b)
+        } else {
+            (node_b, node_a)
+        };
+
+        let (first, second) = self.nodes.split_at_mut(b_index);
+        let a_node = &mut first[a_index];
+        let b_node = &mut second[0];
+
+        a_node.phase += b_node.phase;
+
+        let b_incoming = b_node.incoming_edges.clone();
+        let b_outgoing = b_node.outgoing_edges.clone();
+
+        for edge_id in b_incoming {
+            let edge = self.edges.get_mut(edge_id).unwrap();
+            edge.target = a_index;
+            a_node.incoming_edges.push(edge_id);
+        }
+
+        for edge_id in b_outgoing {
+            let edge = self.edges.get_mut(edge_id).unwrap();
+            edge.source = a_index;
+            a_node.outgoing_edges.push(edge_id);
+        }
+        let b_pos = self.nodes.iter().position(|x| x.id == b_index).unwrap();
+        self.nodes.remove(b_pos);
+    }
+
+    pub fn remove_unconnected_nodes(&mut self) {
+        let mut nodes_to_remove = Vec::new();
+
+        for node in &self.nodes {
+            if node.incoming_edges.is_empty() && node.outgoing_edges.is_empty() {
+                nodes_to_remove.push(node.id);
+            }
+        }
+
+        for node_id in nodes_to_remove {
+            let node_pos = self.nodes.iter().position(|x| x.id == node_id).unwrap();
+            self.nodes.remove(node_pos);
+        }
+    }
+
+    pub fn remove_singletons(&mut self) {
+        let mut nodes_to_remove = Vec::new();
+
+        for node in &self.nodes {
+            if node.incoming_edges.is_empty() && node.outgoing_edges.is_empty() {
+                nodes_to_remove.push(node.id);
+            }
+        }
+
+        for node_id in nodes_to_remove {
+            let node_pos = self.nodes.iter().position(|x| x.id == node_id).unwrap();
+            self.nodes.remove(node_pos);
+        }
+    }
 
     pub fn to_adjacency_matrix(&self) -> Vec<Vec<usize>> {
         let mut adjacency_matrix = vec![vec![0; self.nodes.len()]; self.nodes.len()];
