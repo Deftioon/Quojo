@@ -8,12 +8,13 @@ pub enum NodeType {
 }
 
 #[derive(Debug)]
-struct Node {
-    id: usize,
-    node_type: NodeType,
-    phase: f64,
-    outgoing_edges: Vec<usize>,
-    incoming_edges: Vec<usize>,
+pub struct Node {
+    pub id: usize,
+    pub node_type: NodeType,
+    pub phase: f64,
+    pub outgoing_edges: Vec<usize>,
+    pub incoming_edges: Vec<usize>,
+    pub active: bool,
 }
 
 impl Node {
@@ -24,34 +25,63 @@ impl Node {
             phase,
             outgoing_edges: Vec::new(),
             incoming_edges: Vec::new(),
+            active: true,
         }
     }
+}
 
-    fn get_phase(&self) -> f64 {
-        self.phase
-    }
+pub struct NodeView<'a> {
+    pub node: &'a Node,
+    pub edges: &'a [Edge],
+}
 
-    fn set_phase(&mut self, phase: f64) {
-        self.phase = phase;
+impl<'a> fmt::Debug for NodeView<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let active_outgoing: Vec<_> = self
+            .node
+            .outgoing_edges
+            .iter()
+            .filter(|&x| self.edges[*x].active)
+            .collect();
+
+        let active_incoming: Vec<_> = self
+            .node
+            .incoming_edges
+            .iter()
+            .filter(|&x| self.edges[*x].active)
+            .collect();
+
+        writeln!(f, "Node")?;
+        writeln!(f, "ID: {}", self.node.id)?;
+        writeln!(f, "Type: {:?}", self.node.node_type)?;
+        writeln!(f, "Phase: {}", self.node.phase)?;
+        writeln!(f, "Outgoing edges: {:?}", active_outgoing)?;
+        writeln!(f, "Incoming edges: {:?}", active_incoming)
     }
 }
 
 #[derive(Debug)]
-struct Edge {
-    id: usize,
-    source: usize,
-    target: usize,
+pub struct Edge {
+    pub id: usize,
+    pub source: usize,
+    pub target: usize,
+    pub active: bool,
 }
 
 impl Edge {
     fn new(id: usize, source: usize, target: usize) -> Self {
-        Self { id, source, target }
+        Self {
+            id,
+            source,
+            target,
+            active: true,
+        }
     }
 }
 
 pub struct Graph {
-    nodes: Vec<Node>,
-    edges: Vec<Edge>,
+    pub nodes: Vec<Node>,
+    pub edges: Vec<Edge>,
 }
 
 impl Graph {
@@ -105,8 +135,10 @@ impl Graph {
         let b_incoming = b_node.incoming_edges.clone();
         let b_outgoing = b_node.outgoing_edges.clone();
 
+        //TODO: it should not be setting the target to a_index.
         for edge_id in b_incoming {
             let edge = self.edges.get_mut(edge_id).unwrap();
+            edge.active = false;
             edge.target = a_index;
             a_node.incoming_edges.push(edge_id);
         }
@@ -116,8 +148,30 @@ impl Graph {
             edge.source = a_index;
             a_node.outgoing_edges.push(edge_id);
         }
-        let b_pos = self.nodes.iter().position(|x| x.id == b_index).unwrap();
-        self.nodes.remove(b_pos);
+
+        self.nodes.get_mut(b_index).unwrap().active = false;
+    }
+
+    pub fn remove_self_cycles(&mut self) {
+        let mut edges_to_remove = Vec::new();
+        let mut related_nodes = Vec::new();
+
+        for edge in &self.edges {
+            if edge.source == edge.target {
+                edges_to_remove.push(edge.id);
+                related_nodes.push(edge.source);
+            }
+        }
+
+        for edge_id in edges_to_remove {
+            self.edges.get_mut(edge_id).unwrap().active = false;
+        }
+
+        for node_id in related_nodes {
+            let node = self.nodes.get_mut(node_id).unwrap();
+            node.incoming_edges.retain(|&x| x != node_id);
+            node.outgoing_edges.retain(|&x| x != node_id);
+        }
     }
 
     pub fn remove_unconnected_nodes(&mut self) {
@@ -130,23 +184,7 @@ impl Graph {
         }
 
         for node_id in nodes_to_remove {
-            let node_pos = self.nodes.iter().position(|x| x.id == node_id).unwrap();
-            self.nodes.remove(node_pos);
-        }
-    }
-
-    pub fn remove_singletons(&mut self) {
-        let mut nodes_to_remove = Vec::new();
-
-        for node in &self.nodes {
-            if node.incoming_edges.is_empty() && node.outgoing_edges.is_empty() {
-                nodes_to_remove.push(node.id);
-            }
-        }
-
-        for node_id in nodes_to_remove {
-            let node_pos = self.nodes.iter().position(|x| x.id == node_id).unwrap();
-            self.nodes.remove(node_pos);
+            self.nodes.get_mut(node_id).unwrap().active = false;
         }
     }
 
@@ -177,11 +215,19 @@ impl fmt::Debug for Graph {
         writeln!(f, "Graph")?;
         writeln!(f, "Nodes:")?;
         for node in &self.nodes {
-            writeln!(f, "{:?}", node)?;
+            if node.active {
+                let view = NodeView {
+                    node,
+                    edges: &self.edges,
+                };
+                writeln!(f, "{:?}", view)?;
+            }
         }
         writeln!(f, "Edges:")?;
         for edge in &self.edges {
-            writeln!(f, "{:?}", edge)?;
+            if edge.active {
+                writeln!(f, "{:?}", edge)?;
+            }
         }
         Ok(())
     }
