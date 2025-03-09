@@ -23,18 +23,15 @@ use quojo_rust::zxcalc::graph;
 //     println!("{:?}", graph.to_adjacency_matrix())
 // }
 
+//TODO:  Does not work for this case! Missing edge from n5 to n1
 fn main() {
     let mut graph = graph::Graph::new();
-
-    let n1 = graph.add_node(graph::NodeType::Z, 0.0);
+    let n1 = graph.add_node(graph::NodeType::Z, 1.0);
     let n2 = graph.add_node(graph::NodeType::Z, 1.0);
-
     graph.add_edge(n1, n2);
+
     println!("{:?}", graph);
 
-    graph.fuse_nodes(0, 1);
-    println!("{:?}", graph);
-
-    graph.remove_singletons();
+    graph.fuse_nodes(n1, n2);
     println!("{:?}", graph);
 }
