@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use std::fmt;
+use std::sync::Arc;
 use uuid::Uuid;
 
 fn fuse_vec<T>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
@@ -51,12 +52,14 @@ impl Node {
 #[derive(Debug)]
 pub struct Graph {
     nodes: HashMap<Uuid, Node>,
+    order: Vec<Uuid>,
 }
 
 impl Graph {
     pub fn new() -> Self {
         Self {
             nodes: HashMap::new(),
+            order: Vec::new(),
         }
     }
 
@@ -64,6 +67,7 @@ impl Graph {
         let node = Node::new(node_type, phase);
         let id = Uuid::new_v4();
         self.nodes.insert(id, node);
+        self.order.push(id);
         id
     }
 
@@ -99,5 +103,30 @@ impl Graph {
 
         self.nodes.remove(&n1).expect("Could not remove node 1");
         self.nodes.remove(&n2).expect("Could not remove node 2");
+        self.order.retain(|&id| id != n1 && id != n2);
     }
 }
+
+// impl std::fmt::Display for Graph {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         // Name Nodes First
+//         let mut named_map: HashMap<Uuid, String> = HashMap::new();
+//         for (i, &id) in self.order.iter().enumerate() {
+//             let name = format!("n{}", i);
+//             named_map.insert(id, name);
+//         }
+
+//         for (i, &id) in self.order.iter().enumerate() {
+//             let name = named_map.get(&id).unwrap();
+//             let node = self.nodes.get(&id).unwrap();
+//             write!(f, "{}: {:?} {}", name, node.node_type, node.phase)?;
+//             for edge in node.outgoing_edges.iter() {
+//                 let edge_name = named_map.get(edge).unwrap();
+//                 write!(f, " -> {}", edge_name)?;
+//             }
+//             writeln!(f)?;
+//         }
+
+//         Ok(())
+//     }
+// }
