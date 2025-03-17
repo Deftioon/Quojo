@@ -1,132 +1,279 @@
-//TODO: Don't use outgoing and incoming edges, just one  vec of edges.
+use std::collections::{HashMap, HashSet};
 
-use std::collections::HashMap;
-use std::fmt;
-use std::sync::Arc;
-use uuid::Uuid;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct NodeIndex(pub usize);
 
-fn fuse_vec<T>(v1: Vec<T>, v2: Vec<T>) -> Vec<T> {
-    let mut v = Vec::new();
-    v.extend(v1);
-    v.extend(v2);
-    v
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct EdgeIndex(pub usize);
 
-#[derive(Debug, Copy, Clone)]
-pub enum NodeType {
+#[derive(Debug, Clone, PartialEq)]
+pub enum SpiderType {
     Z,
     X,
-    H,
 }
 
-impl PartialEq for NodeType {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (NodeType::Z, NodeType::Z) => true,
-            (NodeType::X, NodeType::X) => true,
-            (NodeType::H, NodeType::H) => true,
-            _ => false,
-        }
-    }
+#[derive(Debug, Clone, PartialEq)]
+pub enum EdgeType {
+    Regular,
+    Hadamard,
 }
 
 #[derive(Debug)]
+pub struct ZXGraph {
+    pub nodes: Vec<Option<Node>>,
+    pub edges: Vec<Option<Edge>>,
+    pub free_nodes: Vec<usize>,
+    pub free_edges: Vec<usize>,
+    pub input_nodes: HashSet<NodeIndex>,
+    pub output_nodes: HashSet<NodeIndex>,
+}
+
+#[derive(Debug, Clone)]
 pub struct Node {
-    pub node_type: NodeType,
+    pub spider_type: SpiderType,
     pub phase: f64,
-    pub outgoing_edges: Vec<Uuid>,
-    pub incoming_edges: Vec<Uuid>,
-}
-
-impl Node {
-    fn new(node_type: NodeType, phase: f64) -> Self {
-        Self {
-            node_type,
-            phase,
-            outgoing_edges: Vec::new(),
-            incoming_edges: Vec::new(),
-        }
-    }
+    pub edges: HashSet<EdgeIndex>,
 }
 
 #[derive(Debug)]
-pub struct Graph {
-    nodes: HashMap<Uuid, Node>,
-    order: Vec<Uuid>,
+pub struct Edge {
+    pub endpoints: (NodeIndex, NodeIndex),
+    pub edge_type: EdgeType,
 }
 
-impl Graph {
+impl ZXGraph {
     pub fn new() -> Self {
-        Self {
-            nodes: HashMap::new(),
-            order: Vec::new(),
+        ZXGraph {
+            nodes: Vec::new(),
+            edges: Vec::new(),
+            free_nodes: Vec::new(),
+            free_edges: Vec::new(),
+            input_nodes: HashSet::new(),
+            output_nodes: HashSet::new(), 
         }
     }
 
-    pub fn add_node(&mut self, node_type: NodeType, phase: f64) -> Uuid {
-        let node = Node::new(node_type, phase);
-        let id = Uuid::new_v4();
-        self.nodes.insert(id, node);
-        self.order.push(id);
-        id
+    pub fn add_node(&mut self, spider_type: SpiderType, phase: f64) -> NodeIndex {
+        let idx = if let Some(idx) = self.free_nodes.pop() {
+            self.nodes[idx] = Some(Node {
+                spider_type,
+                phase,
+                edges: HashSet::new(),
+            });
+            idx
+        } else {
+            self.nodes.push(Some(Node {
+                spider_type,
+                phase,
+                edges: HashSet::new(),
+            }));
+            self.nodes.len() - 1
+        };
+        NodeIndex(idx)
     }
 
-    pub fn add_edge(&mut self, from: Uuid, to: Uuid) {
-        self.nodes.get_mut(&from).unwrap().outgoing_edges.push(to);
-        self.nodes.get_mut(&to).unwrap().incoming_edges.push(from);
+    pub fn add_input_node(&mut self, spider_type: SpiderType, phase: f64) -> NodeIndex {
+        let node_idx = self.add_node(spider_type, phase);
+        self.input_nodes.insert(node_idx);
+        node_idx
     }
 
-    pub fn fuse_nodes(&mut self, n1: Uuid, n2: Uuid) {
-        let origin = self.nodes.get(&n1).unwrap();
-        let target = self.nodes.get(&n2).unwrap();
-        let origin_type = origin.node_type;
-        if origin_type != target.node_type {
-            panic!("Cannot fuse nodes of different types");
+    pub fn set_as_input(&mut self, node_idx: NodeIndex) {
+        if node_idx.0 < self.nodes.len() && self.nodes[node_idx.0].is_some() {
+            self.input_nodes.insert(node_idx);
+        }
+    }
+
+    pub fn unset_as_input(&mut self, node_idx: NodeIndex) {
+        self.input_nodes.remove(&node_idx);
+    }
+
+    pub fn is_input_node(&self, node_idx: NodeIndex) -> bool {
+        self.input_nodes.contains(&node_idx)
+    }
+
+    pub fn add_output_node(&mut self, spider_type: SpiderType, phase: f64) -> NodeIndex {
+        let node_idx = self.add_node(spider_type, phase);
+        self.output_nodes.insert(node_idx);
+        node_idx
+    }
+
+    pub fn set_as_output(&mut self, node_idx: NodeIndex) {
+        if node_idx.0 < self.nodes.len() && self.nodes[node_idx.0].is_some() {
+            self.output_nodes.insert(node_idx);
+        }
+    }
+
+    pub fn unset_as_output(&mut self, node_idx: NodeIndex) {
+        self.output_nodes.remove(&node_idx);
+    }
+
+    pub fn is_output_node(&self, node_idx: NodeIndex) -> bool {
+        self.output_nodes.contains(&node_idx)
+    }
+
+    pub fn remove_node(&mut self, idx: NodeIndex) {
+        if let Some(node) = self.nodes[idx.0].take() {
+            for edge_idx in node.edges {
+                self.remove_edge(edge_idx);
+            }
+            self.free_nodes.push(idx.0);
+            
+            self.input_nodes.remove(&idx);
+            self.output_nodes.remove(&idx);
+        }
+    }
+
+    pub fn add_edge(&mut self, a: NodeIndex, b: NodeIndex, edge_type: EdgeType) -> EdgeIndex {
+        let edge_idx = if let Some(idx) = self.free_edges.pop() {
+            self.edges[idx] = Some(Edge {
+                endpoints: (a, b),
+                edge_type,
+            });
+            idx
+        } else {
+            self.edges.push(Some(Edge {
+                endpoints: (a, b),
+                edge_type,
+            }));
+            self.edges.len() - 1
+        };
+
+        if let Some(node) = &mut self.nodes[a.0] {
+            node.edges.insert(EdgeIndex(edge_idx));
+        }
+        if let Some(node) = &mut self.nodes[b.0] {
+            node.edges.insert(EdgeIndex(edge_idx));
         }
 
-        let fused_phase = origin.phase + target.phase;
+        EdgeIndex(edge_idx)
+    }
 
-        let fused_id = self.add_node(NodeType::Z, fused_phase);
+    pub fn remove_edge(&mut self, edge_idx: EdgeIndex) {
+        if let Some(edge) = self.edges[edge_idx.0].take() {
+            if let Some(node) = &mut self.nodes[edge.endpoints.0.0] {
+                node.edges.remove(&edge_idx);
+            }
+            if let Some(node) = &mut self.nodes[edge.endpoints.1.0] {
+                node.edges.remove(&edge_idx);
+            }
+            self.free_edges.push(edge_idx.0);
+        }
+    }
 
-        let fused_outgoing_edges = fuse_vec(
-            self.nodes.get(&n1).unwrap().outgoing_edges.clone(),
-            self.nodes.get(&n2).unwrap().outgoing_edges.clone(),
-        );
+    pub fn neighbors(&self, idx: NodeIndex) -> Vec<NodeIndex> {
+        let mut neighbors = Vec::new();
+        if let Some(node) = &self.nodes[idx.0] {
+            for edge_idx in &node.edges {
+                if let Some(edge) = &self.edges[edge_idx.0] {
+                    let other = if edge.endpoints.0 == idx {
+                        edge.endpoints.1
+                    } else {
+                        edge.endpoints.0
+                    };
+                    neighbors.push(other);
+                }
+            }
+        }
+        neighbors
+    }
 
-        let fused_incoming_edges = fuse_vec(
-            self.nodes.get(&n1).unwrap().incoming_edges.clone(),
-            self.nodes.get(&n2).unwrap().incoming_edges.clone(),
-        );
+    pub fn node_data(&self, idx: NodeIndex) -> Option<(&SpiderType, &f64)> {
+        self.nodes[idx.0]
+            .as_ref()
+            .map(|n| (&n.spider_type, &n.phase))
+    }
 
-        self.nodes.get_mut(&fused_id).unwrap().outgoing_edges = fused_outgoing_edges;
-        self.nodes.get_mut(&fused_id).unwrap().incoming_edges = fused_incoming_edges;
+    pub fn edge_data(&self, idx: EdgeIndex) -> Option<&EdgeType> {
+        self.edges[idx.0].as_ref().map(|e| &e.edge_type)
+    }
 
-        self.nodes.remove(&n1).expect("Could not remove node 1");
-        self.nodes.remove(&n2).expect("Could not remove node 2");
-        self.order.retain(|&id| id != n1 && id != n2);
+    /// Returns the number of fusion operations performed
+    pub fn fuse_spiders(&mut self) -> usize {
+        let mut fusion_count = 0;
+        
+        loop {
+            let fusion_candidate = self.find_fusion_candidate();
+            
+            if let Some((node1, node2, edge_idx)) = fusion_candidate {
+                self.fuse_spider_pair(node1, node2, edge_idx);
+                fusion_count += 1;
+            } else {
+                break;
+            }
+        }
+        
+        fusion_count
+    }
+    
+    fn find_fusion_candidate(&self) -> Option<(NodeIndex, NodeIndex, EdgeIndex)> {
+        for (i, edge_opt) in self.edges.iter().enumerate() {
+            if let Some(edge) = edge_opt {
+                if let EdgeType::Regular = edge.edge_type {
+                    let node1 = edge.endpoints.0;
+                    let node2 = edge.endpoints.1;
+                    
+                    if node1 == node2 {
+                        continue;
+                    }
+                    
+                    if let (Some((type1, _)), Some((type2, _))) = 
+                            (self.node_data(node1), self.node_data(node2)) {
+                        if type1 == type2 {
+                            return Some((node1, node2, EdgeIndex(i)));
+                        }
+                    }
+                }
+            }
+        }
+        
+        None
+    }
+    
+    fn fuse_spider_pair(&mut self, node1: NodeIndex, node2: NodeIndex, edge_idx: EdgeIndex) {
+        let mut node1_data = self.nodes[node1.0].clone().unwrap();
+        let node2_data = self.nodes[node2.0].clone().unwrap();
+        
+        let new_phase = normalize_phase(node1_data.phase + node2_data.phase);
+        
+        node1_data.phase = new_phase;
+        self.nodes[node1.0] = Some(node1_data.clone());
+        
+        let mut edges_to_reconnect = Vec::new();
+        
+        for &e_idx in &node2_data.edges {
+            if e_idx != edge_idx {
+                if let Some(edge) = &self.edges[e_idx.0] {
+                    let other_end = if edge.endpoints.0 == node2 {
+                        edge.endpoints.1
+                    } else {
+                        edge.endpoints.0
+                    };
+                    
+                    edges_to_reconnect.push((e_idx, other_end, edge.edge_type.clone()));
+                }
+            }
+        }
+        
+        self.remove_edge(edge_idx);
+        
+        for (old_edge_idx, other_node, edge_type) in edges_to_reconnect {
+            self.remove_edge(old_edge_idx);
+            
+            if other_node != node1 {
+                self.add_edge(node1, other_node, edge_type);
+            }
+        }
+        
+        self.remove_node(node2);
     }
 }
 
-// impl std::fmt::Display for Graph {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         // Name Nodes First
-//         let mut named_map: HashMap<Uuid, String> = HashMap::new();
-//         for (i, &id) in self.order.iter().enumerate() {
-//             let name = format!("n{}", i);
-//             named_map.insert(id, name);
-//         }
-
-//         for (i, &id) in self.order.iter().enumerate() {
-//             let name = named_map.get(&id).unwrap();
-//             let node = self.nodes.get(&id).unwrap();
-//             write!(f, "{}: {:?} {}", name, node.node_type, node.phase)?;
-//             for edge in node.outgoing_edges.iter() {
-//                 let edge_name = named_map.get(edge).unwrap();
-//                 write!(f, " -> {}", edge_name)?;
-//             }
-//             writeln!(f)?;
-//         }
-
-//         Ok(())
-//     }
-// }
+fn normalize_phase(phase: f64) -> f64 {
+    const TWO_PI: f64 = std::f64::consts::PI * 2.0;
+    let mut normalized = phase % TWO_PI;
+    if normalized < 0.0 {
+        normalized += TWO_PI;
+    }
+    normalized
+}

@@ -1,0 +1,50 @@
+\documentclass{standalone}
+\usepackage{tikz}
+
+\begin{document}
+\begin{tikzpicture}[
+    z_node/.style={circle,draw=green,fill=green!20,minimum size=6mm,text=black},
+    x_node/.style={circle,draw=red,fill=red!20,minimum size=6mm,text=black},
+    regular_edge/.style={black,thick},
+    hadamard_edge/.style={black,thick},
+    hadamard_box/.style={fill=yellow,draw=black,minimum size=3mm},
+    small_hadamard_box/.style={fill=yellow,draw=black,minimum size=2mm},
+    edge_count/.style={text=black,font=\scriptsize},
+    input_wire/.style={thick,black},
+    output_wire/.style={thick,black}]
+\node[z_node] (0) at (3.00,0.00) {0.50};
+\node[z_node] (1) at (0.00,-1.00) {0.30};
+\node[x_node] (2) at (6.00,0.00) {};
+\node[z_node] (3) at (-6.00,0.00) {};
+\node[z_node] (4) at (-3.00,0.00) {};
+\node[z_node] (5) at (0.00,1.00) {};
+\draw[regular_edge] (0) .. controls (2.00,0.00) and (0.80,-0.40) .. (1);
+\draw[regular_edge] (0) .. controls (2.20,-0.60) and (1.00,-1.00) .. (1);
+\node[fill=white,inner sep=2pt] at (1.50,-0.50) {};
+\draw[regular_edge,dotted] (1.43,-0.27) -- (1.46,-0.39);
+\draw[regular_edge,dotted] (1.54,-0.61) -- (1.57,-0.73);
+\node[edge_count] at (1.50,-0.50) {5};
+\draw[hadamard_edge] (0) .. controls (3.90,-0.30) and (5.10,-0.30) .. (2);
+\draw[hadamard_edge] (0) .. controls (3.90,0.30) and (5.10,0.30) .. (2);
+\node[small_hadamard_box] (h_top) at (4.50,-0.27) {};
+\node[small_hadamard_box] (h_bottom) at (4.50,0.27) {};
+\node[fill=white,inner sep=2pt] at (4.50,0.00) {};
+\draw[hadamard_edge,dotted] (4.50,-0.22) -- (4.50,-0.11);
+\draw[hadamard_edge,dotted] (4.50,0.11) -- (4.50,0.22);
+\node[edge_count] at (4.50,0.00) {7};
+\draw[hadamard_edge] (0) .. controls (2.10,0.30) and (0.90,0.70) .. (5);
+\node[hadamard_box] (h14) at (1.50,0.50) {};
+\draw[hadamard_edge] (1) .. controls (-0.80,-0.40) and (-2.00,0.00) .. (4);
+\draw[hadamard_edge] (1) .. controls (-1.00,-1.00) and (-2.20,-0.60) .. (4);
+\node[small_hadamard_box] (h_top) at (-1.41,-0.23) {};
+\node[small_hadamard_box] (h_bottom) at (-1.59,-0.77) {};
+\node[fill=white,inner sep=2pt] at (-1.50,-0.50) {};
+\draw[hadamard_edge,dotted] (-1.43,-0.27) -- (-1.46,-0.39);
+\draw[hadamard_edge,dotted] (-1.54,-0.61) -- (-1.57,-0.73);
+\node[edge_count] at (-1.50,-0.50) {5};
+\draw[hadamard_edge] (3) .. controls (-5.10,0.00) and (-3.90,0.00) .. (4);
+\node[hadamard_box] (h12) at (-4.50,0.00) {};
+\draw[hadamard_edge] (4) .. controls (-2.10,0.30) and (-0.90,0.70) .. (5);
+\node[hadamard_box] (h13) at (-1.50,0.50) {};
+\end{tikzpicture}
+\end{document}

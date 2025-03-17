@@ -1,0 +1,43 @@
+\documentclass{standalone}
+\usepackage{tikz}
+
+\begin{document}
+\begin{tikzpicture}[
+    z_node/.style={circle,draw=green,fill=green!20,minimum size=6mm,text=black},
+    x_node/.style={circle,draw=red,fill=red!20,minimum size=6mm,text=black},
+    regular_edge/.style={black,thick},
+    hadamard_edge/.style={black,thick},
+    hadamard_box/.style={fill=yellow,draw=black,minimum size=3mm},
+    small_hadamard_box/.style={fill=yellow,draw=black,minimum size=2mm},
+    edge_count/.style={text=black,font=\scriptsize},
+    input_wire/.style={thick,black},
+    output_wire/.style={thick,black}]
+\node[z_node] (0) at (1.50,-1.00) {0.80};
+\node[x_node] (2) at (4.50,0.00) {};
+\node[z_node] (3) at (-4.50,0.00) {};
+\node[z_node] (4) at (-1.50,0.00) {};
+\node[z_node] (5) at (1.50,1.00) {};
+\draw[hadamard_edge] (0) .. controls (2.50,-1.00) and (3.70,-0.60) .. (2);
+\draw[hadamard_edge] (0) .. controls (2.30,-0.40) and (3.50,0.00) .. (2);
+\node[small_hadamard_box] (h_top) at (3.09,-0.77) {};
+\node[small_hadamard_box] (h_bottom) at (2.91,-0.23) {};
+\node[fill=white,inner sep=2pt] at (3.00,-0.50) {};
+\draw[hadamard_edge,dotted] (3.08,-0.73) -- (3.04,-0.61);
+\draw[hadamard_edge,dotted] (2.96,-0.39) -- (2.92,-0.27);
+\node[edge_count] at (3.00,-0.50) {7};
+\draw[hadamard_edge] (0) .. controls (0.70,-0.40) and (-0.50,0.00) .. (4);
+\draw[hadamard_edge] (0) .. controls (0.50,-1.00) and (-0.70,-0.60) .. (4);
+\node[small_hadamard_box] (h_top) at (0.09,-0.23) {};
+\node[small_hadamard_box] (h_bottom) at (-0.09,-0.77) {};
+\node[fill=white,inner sep=2pt] at (0.00,-0.50) {};
+\draw[hadamard_edge,dotted] (0.08,-0.27) -- (0.04,-0.39);
+\draw[hadamard_edge,dotted] (-0.04,-0.61) -- (-0.08,-0.73);
+\node[edge_count] at (0.00,-0.50) {5};
+\draw[hadamard_edge] (0) .. controls (1.50,-0.40) and (1.50,0.40) .. (5);
+\node[hadamard_box] (h14) at (1.50,0.00) {};
+\draw[hadamard_edge] (3) .. controls (-3.60,0.00) and (-2.40,0.00) .. (4);
+\node[hadamard_box] (h12) at (-3.00,0.00) {};
+\draw[hadamard_edge] (4) .. controls (-0.60,0.30) and (0.60,0.70) .. (5);
+\node[hadamard_box] (h13) at (0.00,0.50) {};
+\end{tikzpicture}
+\end{document}
