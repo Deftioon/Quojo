@@ -1,3 +1,5 @@
+// TODO: custom unitary gates
+
 use std::fmt::Display;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
