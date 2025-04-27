@@ -14,7 +14,6 @@ pub struct TikzConfig {
     pub hadamard_box_style: String,
 }
 
-
 impl Default for TikzConfig {
     fn default() -> Self {
         Self {
@@ -43,7 +42,6 @@ pub fn generate_tikz(graph: &ZXGraph, config: &TikzConfig) -> String {
     let fixed_output_endpoint = calculate_output_endpoint(&positions, graph, config);
     
     draw_input_wires(graph, &positions, config, &mut output);
-    
     draw_output_wires(graph, &positions, fixed_output_endpoint, &mut output);
     
     draw_nodes(graph, &positions, &mut output);
@@ -53,23 +51,19 @@ pub fn generate_tikz(graph: &ZXGraph, config: &TikzConfig) -> String {
     output
 }
 
-
 fn calculate_output_endpoint(
     positions: &HashMap<NodeIndex, (f64, f64)>, 
     graph: &ZXGraph,
     config: &TikzConfig
 ) -> f64 {
-    
     let mut max_x = f64::MIN;
     
-    for (&node_idx, &(x, _)) in positions.iter() {
+    for (&_node_idx, &(x, _)) in positions.iter() {
         max_x = max_x.max(x);
     }
     
-    
     max_x + config.node_spacing * 1.5
 }
-
 
 fn draw_input_wires(
     graph: &ZXGraph,
@@ -77,23 +71,20 @@ fn draw_input_wires(
     config: &TikzConfig,
     output: &mut String
 ) {
-    
     let input_wire_length = config.node_spacing * 1.5;
     
     for &node_idx in &graph.input_nodes {
         if let Some(&(x, y)) = positions.get(&node_idx) {
-            
             output.push_str(&format!(
                 "  \\draw[input_wire] ({:.2},{:.2}) -- ({:.2},{:.2});\n",
                 x - input_wire_length, y, x, y
             ));
-            
-            
-            
+        } else {
+            // Handle case where position isn't defined for an input node
+            println!("Warning: No position for input node {:?}", node_idx);
         }
     }
 }
-
 
 fn draw_output_wires(
     graph: &ZXGraph,
@@ -103,11 +94,13 @@ fn draw_output_wires(
 ) {
     for &node_idx in &graph.output_nodes {
         if let Some(&(x, y)) = positions.get(&node_idx) {
-            
             output.push_str(&format!(
                 "  \\draw[output_wire] ({:.2},{:.2}) -- ({:.2},{:.2});\n",
                 x, y, end_x, y
             ));
+        } else {
+            // Handle case where position isn't defined for an output node
+            println!("Warning: No position for output node {:?}", node_idx);
         }
     }
 }
@@ -145,22 +138,17 @@ fn draw_edges(
     config: &TikzConfig,
     output: &mut String,
 ) {
-    
     let edge_groups = group_edges_by_endpoints(graph);
-    
     
     let mut sorted_edge_groups: Vec<((NodeIndex, NodeIndex), Vec<(EdgeIndex, &Edge)>)> = 
         edge_groups.into_iter().collect();
     sorted_edge_groups.sort_by_key(|((src, dst), _)| (src.0, dst.0));
     
     for ((src, dst), edges) in sorted_edge_groups {
-        
         if let (Some(&src_pos), Some(&dst_pos)) = (positions.get(&src), positions.get(&dst)) {
-            
             if (src_pos.0 - dst_pos.0).abs() < 0.001 && (src_pos.1 - dst_pos.1).abs() < 0.001 {
                 continue;
             }
-            
             
             let mut regular_edges: Vec<_> = Vec::new();
             let mut hadamard_edges: Vec<_> = Vec::new();
@@ -385,25 +373,41 @@ fn calculate_professional_layout(graph: &ZXGraph, config: &TikzConfig) -> HashMa
     
     let positions = calculate_circuit_layout(graph, &nodes, config);
     
+    // Ensure all nodes have positions by assigning defaults to any missing ones
     let mut complete_positions = HashMap::new();
+    
+    // First add all calculated positions
     for &node in &nodes {
         if let Some(&pos) = positions.get(&node) {
             complete_positions.insert(node, pos);
         } else {
+            // Assign a default position for nodes without one
             complete_positions.insert(node, (0.0, 0.0));
         }
     }
     
+    // Make sure all input nodes have positions
+    for &node in &graph.input_nodes {
+        if !complete_positions.contains_key(&node) {
+            complete_positions.insert(node, (0.0, 0.0));
+            println!("Warning: Added default position for input node {:?}", node);
+        }
+    }
+    
+    // Make sure all output nodes have positions
+    for &node in &graph.output_nodes {
+        if !complete_positions.contains_key(&node) {
+            complete_positions.insert(node, (0.0, 0.0));
+            println!("Warning: Added default position for output node {:?}", node);
+        }
+    }
     
     let mut adjusted_positions = complete_positions.clone();
     for (&node, &(x, y)) in &complete_positions {
         if graph.is_input_node(node) {
-            
             adjusted_positions.insert(node, (x + config.node_spacing * 0.5, y));
         }
-        
     }
-    
     
     center_and_normalize_positions(&mut adjusted_positions);
     
@@ -450,7 +454,6 @@ fn calculate_circuit_layout(
 
     handle_special_cases(graph, nodes, &mut positions, config);
     
-    
     center_and_normalize_positions(&mut positions);
     
     positions
@@ -479,8 +482,7 @@ fn identify_io_nodes(
             } else if degree > 0 {
                 internal.push(node);
             } else {
-                
-                
+                // Handle isolated nodes
             }
         }
     }
@@ -732,7 +734,6 @@ fn group_edges_by_endpoints(graph: &ZXGraph) -> HashMap<(NodeIndex, NodeIndex), 
     
     for (i, edge) in graph.edges.iter().enumerate() {
         if let Some(edge) = edge {
-            
             let key = if edge.endpoints.0.0 <= edge.endpoints.1.0 {
                 (edge.endpoints.0, edge.endpoints.1)
             } else {
